@@ -52,7 +52,7 @@
                 </div>
             </div>
 
-            <!-- Tab Navigation (Includes Dice Roller Tab) -->
+            <!-- Tab Navigation -->
             <nav class="flex gap-1 bg-black/40 p-1.5 rounded-xl border border-dnd-border overflow-x-auto max-w-full">
                 <button onclick="switchTab('core')" id="btn-core" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all bg-dnd-gold text-black shadow"><i class="fa-solid fa-user mr-1.5"></i> Principal</button>
                 <button onclick="switchTab('combat')" id="btn-combat" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-shield-halved mr-1.5"></i> Inventário</button>
@@ -89,7 +89,7 @@
                 <i class="fa-solid fa-circle-exclamation text-2xl" id="modalIcon"></i>
                 <h3 id="modalTitle" class="cinzel font-bold text-lg">Aviso do Sistema</h3>
             </div>
-            <p id="modalMessage" class="text-gray-300 text-sm mb-6 leading-relaxed"></p>
+            <p id="modalMessage" class="text-gray-300 text-sm mb-6 leading-relaxed whitespace-pre-line"></p>
             <div class="flex justify-end">
                 <button onclick="closeModal()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">Entendido</button>
             </div>
@@ -98,9 +98,7 @@
 
     <main class="max-w-7xl mx-auto px-4 mt-6">
 
-        <!-- TAB 1: CORE / PRINCIPAL -->
         <div id="tab-core" class="tab-content space-y-6">
-            <!-- Character Header Info Card -->
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
                     <div class="md:col-span-2 lg:col-span-3">
@@ -114,7 +112,7 @@
                     
                     <div class="md:col-span-2 lg:col-span-2">
                         <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Classe Principal</label>
-                        <select id="char-class" onchange="syncSingleClassToMulticlass(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition">
+                        <select id="char-class" onchange="onClassChange(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition">
                             <option value="Barbarian">Bárbaro (Barbarian) [d12]</option>
                             <option value="Bard">Bardo (Bard) [d8]</option>
                             <option value="Cleric">Clérigo (Cleric) [d8]</option>
@@ -129,6 +127,11 @@
                             <option value="Wizard">Mago (Wizard) [d6]</option>
                             <option value="Artificer">Artífice (Artificer) [d8]</option>
                         </select>
+                    </div>
+
+                    <div class="md:col-span-2 lg:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Subclasse</label>
+                        <input type="text" id="char-subclass" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Campeão / Evocação">
                     </div>
 
                     <div>
@@ -202,7 +205,7 @@
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
                             <span class="text-[9px] uppercase font-bold text-gray-400 block mb-1">Classe de Armadura</span>
-                            <input type="number" id="val-ac" value="15" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-dnd-gold py-1">
+                            <input type="number" id="val-ac" value="15" readonly class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-dnd-gold py-1 cursor-not-allowed">
                         </div>
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
                             <span class="text-[9px] uppercase font-bold text-gray-400 block mb-1">Iniciativa</span>
@@ -213,6 +216,38 @@
                             <input type="text" id="val-speed" value="9m / 30ft" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xs font-bold text-white py-1">
                         </div>
                     </div>
+
+                    <div class="bg-black/50 border border-dnd-border rounded-xl p-3 space-y-3">
+                        <span class="text-[10px] uppercase font-bold text-dnd-gold block"><i class="fa-solid fa-shield mr-1"></i> Configuração de CA</span>
+                        
+                        <div class="space-y-1">
+                            <label class="block text-[9px] uppercase font-bold text-gray-400">Armadura Equipada & Bônus CA</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="armor-name" oninput="saveData()" placeholder="Nome (Ex: Gibão de Peles)" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-xs text-white">
+                                <input type="number" id="armor-bonus" value="12" oninput="calculateStats(); saveData()" placeholder="CA" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xs text-dnd-gold font-bold py-1">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[9px] uppercase font-bold text-gray-400">Escudo Equipado?</label>
+                                <input type="checkbox" id="shield-equipped" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="shield-name" oninput="saveData()" placeholder="Nome do Escudo (Ex: Escudo de Aço)" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-xs text-white">
+                                <input type="number" id="shield-bonus" value="2" oninput="calculateStats(); saveData()" placeholder="Bônus CA" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xs text-dnd-gold font-bold py-1">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[9px] uppercase font-bold text-gray-400">Bônus Extra na CA (Itens/Magias/Habilidades)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="armor-extra-desc" oninput="saveData()" placeholder="Origem (Ex: Defesa de Estilo, Anel de Proteção)" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-xs text-white">
+                                <input type="number" id="armor-extra-bonus" value="0" oninput="calculateStats(); saveData()" placeholder="+0" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xs text-dnd-gold font-bold py-1">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-4 py-3">
                         <div class="flex items-center gap-3">
                             <input type="checkbox" id="heroic-inspiration" onchange="saveData()" class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
@@ -221,7 +256,6 @@
                     </div>
                 </div>
 
-                <!-- Hit Points & Health -->
                 <div class="md:col-span-2 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl space-y-4">
                     <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Saúde, PV & Condições</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -259,7 +293,6 @@
                             </select>
                         </div>
                     </div>
-                    <!-- Death Saves -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3 flex items-center justify-between">
                             <span class="text-xs font-semibold text-gray-300">Sucessos em Morte</span>
@@ -278,15 +311,22 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="bg-black/50 border border-dnd-border rounded-xl p-4 space-y-3 mt-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold uppercase tracking-wider text-dnd-gold"><i class="fa-solid fa-bolt mr-1.5"></i> Recursos (Fúria, Pontos de Ki, Canalizar Divindade, etc.)</span>
+                            <button onclick="addResourceRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1 rounded text-xs font-bold uppercase transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Recurso</button>
+                        </div>
+                        <div id="resources-container" class="space-y-2"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Ability Scores Column -->
                 <div class="lg:col-span-6 space-y-6">
                     <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                         <div class="flex justify-between items-center mb-4">
-                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dumbbell mr-2"></i>Atributos Base</h2>
+                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dumbbell mr-2"></i>Atributos Base (Clique para rolar 1d20)</h2>
                             <div class="bg-black/40 border border-dnd-border px-3 py-1 rounded-xl">
                                 <span class="text-[10px] uppercase font-bold text-gray-400">Proficiência:</span>
                                 <span id="val-prof" class="text-sm font-bold text-dnd-gold ml-1">+2</span>
@@ -296,32 +336,32 @@
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Força</span>
                                 <input type="number" id="stat-str" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-str" class="text-xs font-bold text-dnd-gold block">+3</span>
+                                <span id="mod-str" onclick="rollAbilityCheck('str')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+3</span>
                             </div>
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Destreza</span>
                                 <input type="number" id="stat-dex" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-dex" class="text-xs font-bold text-dnd-gold block">+2</span>
+                                <span id="mod-dex" onclick="rollAbilityCheck('dex')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+2</span>
                             </div>
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Constituição</span>
                                 <input type="number" id="stat-con" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-con" class="text-xs font-bold text-dnd-gold block">+2</span>
+                                <span id="mod-con" onclick="rollAbilityCheck('con')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+2</span>
                             </div>
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Inteligência</span>
                                 <input type="number" id="stat-int" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-int" class="text-xs font-bold text-dnd-gold block">+0</span>
+                                <span id="mod-int" onclick="rollAbilityCheck('int')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+0</span>
                             </div>
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Sabedoria</span>
                                 <input type="number" id="stat-wis" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-wis" class="text-xs font-bold text-dnd-gold block">+1</span>
+                                <span id="mod-wis" onclick="rollAbilityCheck('wis')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+1</span>
                             </div>
                             <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
                                 <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Carisma</span>
                                 <input type="number" id="stat-cha" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
-                                <span id="mod-cha" class="text-xs font-bold text-dnd-gold block">+0</span>
+                                <span id="mod-cha" onclick="rollAbilityCheck('cha')" class="text-xs font-bold text-dnd-gold block cursor-pointer hover:underline">+0</span>
                             </div>
                         </div>
 
@@ -339,10 +379,9 @@
                     </div>
                 </div>
 
-                <!-- Saving Throws Column -->
                 <div class="lg:col-span-6 space-y-6">
                     <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
-                        <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-shield-heart mr-2"></i>Testes de Resistência</h2>
+                        <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-shield-heart mr-2"></i>Testes de Resistência (Clique para rolar 1d20)</h2>
                         <div id="saving-throws-container" class="space-y-2.5"></div>
 
                         <div class="mt-6 pt-4 border-t border-dnd-border">
@@ -355,7 +394,6 @@
                 </div>
             </div>
 
-            <!-- Perícias -->
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-list-check mr-2"></i>Perícias (Clique no nome para rolar 1d20)</h2>
@@ -364,7 +402,6 @@
             </div>
         </div>
 
-        <!-- TAB 2: INVENTÁRIO -->
         <div id="tab-combat" class="tab-content hidden space-y-6">
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
@@ -377,9 +414,9 @@
                             <tr>
                                 <th class="p-3">Nome da Arma</th>
                                 <th class="p-3">Bônus Atq</th>
-                                <th class="p-3">Dano / Tipo</th>
+                                <th class="p-3">Dano / Tipo (Ex: 1d8+3)</th>
                                 <th class="p-3">Maestria</th>
-                                <th class="p-3 text-right">Ação</th>
+                                <th class="p-3 text-right">Ação / Rolagem</th>
                             </tr>
                         </thead>
                         <tbody id="weapons-table-body" class="divide-y divide-dnd-border"></tbody>
@@ -388,7 +425,6 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Coins -->
                 <div class="lg:col-span-4 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col justify-between">
                     <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-coins mr-2"></i>Moedas / Dinheiro</h2>
                     <div class="grid grid-cols-5 gap-2 text-center mb-4">
@@ -421,7 +457,6 @@
                     </div>
                 </div>
 
-                <!-- Equipment & Inventory -->
                 <div class="lg:col-span-8 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-4">
@@ -438,33 +473,62 @@
             </div>
         </div>
 
-        <!-- TAB 3: MAGIAS -->
         <div id="tab-spells" class="tab-content hidden space-y-6">
-            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
-                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Estatísticas de Conjuração</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl space-y-4">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Estatísticas de Conjuração</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Tipo de Conjurador</label>
+                        <select id="spellcaster-type" onchange="autoCalculateSpellSlots(); calculateStats(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:border-dnd-gold focus:outline-none">
+                            <option value="none">Não Conjurador</option>
+                            <option value="full">Conjurador Completo (Full Caster: Mago, Clérigo, etc.)</option>
+                            <option value="half">Meio-Conjurador (Half Caster: Paladino, Patrulheiro)</option>
+                            <option value="third">Terço-Conjurador (Third Caster: Cavaleiro Eldritch, etc.)</option>
+                            <option value="pact">Pact Magic (Bruxo / Warlock)</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Habilidade de Conjuração</label>
                         <select id="spell-ability" onchange="calculateStats(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:border-dnd-gold focus:outline-none">
                             <option value="int">Inteligência</option>
                             <option value="wis">Sabedoria</option>
                             <option value="cha" selected>Carisma</option>
-                            <option value="none">Nenhuma / Não Conjurador</option>
+                            <option value="none">Nenhuma</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">CD do Teste de Resistência</label>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">CD do Teste de Resistência (Auto)</label>
                         <div id="spell-save-dc" class="bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-dnd-gold font-bold text-lg text-center">8</div>
                     </div>
                     <div>
-                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Bônus de Ataque Mágico</label>
-                        <div id="spell-atk-bonus" class="bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-dnd-gold font-bold text-lg text-center">+2</div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Bônus de Ataque Mágico (Auto)</label>
+                        <div class="flex gap-2">
+                            <div id="spell-atk-bonus" class="flex-1 bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-dnd-gold font-bold text-lg text-center">+2</div>
+                            <button onclick="rollSpellAttack()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow" title="Rolar 1d20 + Bônus de Ataque Mágico">
+                                <i class="fa-solid fa-dice-d20"></i> Rolar Atq
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-2 bg-black/40 border border-dnd-border rounded-xl p-3 flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1">
+                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Bônus Extra na CD (Itens/Magias)</label>
+                            <input type="number" id="spell-extra-dc" value="0" oninput="calculateStats(); saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-sm font-bold text-dnd-gold py-1">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Bônus Extra Atq Mágico (Itens/Magias)</label>
+                            <input type="number" id="spell-extra-atk" value="0" oninput="calculateStats(); saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-sm font-bold text-dnd-gold py-1">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
-                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-circle-nodes mr-2"></i>Espaços de Magia (Spell Slots 1º - 9º)</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-circle-nodes mr-2"></i>Espaços de Magia (Spell Slots 1º - 9º)</h2>
+                    <button onclick="autoCalculateSpellSlots()" class="bg-zinc-800 hover:bg-zinc-700 text-dnd-gold border border-dnd-gold/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="Calcular automaticamente com base no nível e tipo de conjurador">
+                        <i class="fa-solid fa-calculator"></i> Auto-calcular Slots
+                    </button>
+                </div>
                 <div class="grid grid-cols-3 sm:grid-cols-9 gap-3 text-center" id="spell-slots-grid"></div>
             </div>
 
@@ -477,7 +541,6 @@
             </div>
         </div>
 
-        <!-- TAB 4: TALENTOS & TRAITS -->
         <div id="tab-features" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
@@ -528,7 +591,6 @@
             </div>
         </div>
 
-        <!-- TAB 5: BIOGRAFIA & LORE -->
         <div id="tab-bio" class="tab-content hidden space-y-6">
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-user-tie mr-2"></i>Aparência do Personagem</h2>
@@ -591,7 +653,6 @@
             </div>
         </div>
 
-        <!-- TAB 6: ROLADOR DE DADOS RÁPIDO -->
         <div id="tab-dice" class="tab-content hidden space-y-6">
             <div class="bg-dnd-cardbg border border-dnd-gold/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -607,7 +668,6 @@
                     </div>
                 </div>
 
-                <!-- Custom Expression Box -->
                 <div class="bg-black/50 border border-dnd-border rounded-2xl p-4 mb-6 space-y-3">
                     <label class="block text-xs font-bold uppercase tracking-wider text-dnd-gold"><i class="fa-solid fa-keyboard mr-1.5"></i> Expressão de Dados Personalizada</label>
                     <div class="flex flex-wrap sm:flex-nowrap gap-3">
@@ -618,7 +678,6 @@
                     </div>
                 </div>
 
-                <!-- Dice Buttons Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 mb-6">
                     <button onclick="rollDice(4)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
                         <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
@@ -650,7 +709,6 @@
                     </button>
                 </div>
 
-                <!-- Dice Result Display & History -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-dnd-border">
                     <div class="bg-black/60 border border-dnd-border rounded-xl p-4 flex flex-col items-center justify-center text-center">
                         <span class="text-[10px] uppercase font-bold text-gray-400 mb-1">Último Resultado</span>
@@ -683,6 +741,22 @@
             "Barbarian": 12, "Bard": 8, "Cleric": 8, "Druid": 8,
             "Fighter": 10, "Monk": 8, "Paladin": 10, "Ranger": 10,
             "Rogue": 8, "Sorcerer": 6, "Warlock": 8, "Wizard": 6, "Artificer": 8
+        };
+
+        const classSavingThrowProfs = {
+            "Barbarian": ["str", "con"],
+            "Bard": ["dex", "cha"],
+            "Cleric": ["wis", "cha"],
+            "Druid": ["int", "wis"],
+            "Fighter": ["str", "con"],
+            "Monk": ["str", "dex"],
+            "Paladin": ["wis", "cha"],
+            "Ranger": ["str", "dex"],
+            "Rogue": ["dex", "int"],
+            "Sorcerer": ["con", "cha"],
+            "Warlock": ["wis", "cha"],
+            "Wizard": ["int", "wis"],
+            "Artificer": ["con", "int"]
         };
 
         const skillsData = [
@@ -718,6 +792,39 @@
         let multiclassList = [
             { className: "Fighter", level: 1 }
         ];
+
+        let resourcesList = [
+            { name: "Fúria", source: "Classe Bárbaro", max: 2, current: 2 }
+        ];
+
+        let weaponsList = [
+            { name: "Espada Longa", atk: "+5", damage: "1d8 + 3", mastery: "Sap (Desvantagem no próximo ataque)" }
+        ];
+
+        let inventoryItemsList = [
+            { name: "Poção de Cura", desc: "Restaura 2d4 + 2 pontos de vida.", rarity: "Comum", attunded: false, weight: 0.5 },
+            { name: "Anel de Proteção", desc: "+1 na CA e em testes de resistência.", rarity: "Raro", attunded: true, weight: 0.1 }
+        ];
+
+        let spellsList = [
+            { name: "Mísseis Mágicos", level: "1º Nível", school: "Evocação", castingTime: "1 Ação", range: "120 pés", components: "V, S", duration: "Instantânea", prepared: true, desc: "Cria três dardos brilhantes de energia mágica.", damageExpr: "3d4 + 3" },
+            { name: "Bola de Fogo", level: "3º Nível", school: "Evocação", castingTime: "1 Ação", range: "150 pés", components: "V, S, M", duration: "Instantânea", prepared: true, desc: "Um raio racha em direção a um ponto que você escolher...", damageExpr: "8d6" }
+        ];
+
+        let speciesTraitsList = [
+            { title: "Visão no Escuro", desc: "Você pode enxergar na penumbra a até 18 metros..." }
+        ];
+
+        let classFeaturesList = [
+            { title: "Estilo de Combate", desc: "Você adota um estilo de combate especializado..." }
+        ];
+
+        let featsList = [
+            { title: "Iniciado em Magia", desc: "Você aprende dois truques e uma magia de 1º nível..." }
+        ];
+
+        let diceRollHistory = [];
+        let characterAvatarData = "";
 
         function showModal(title, message, isError = false) {
             document.getElementById('modalTitle').innerText = title;
@@ -756,15 +863,26 @@
             return Math.floor((lvl - 1) / 4) + 2;
         }
 
-        function syncSingleClassToMulticlass() {
+        function onClassChange() {
             const primaryClass = document.getElementById('char-class').value;
             if (multiclassList.length > 0) {
                 multiclassList[0].className = primaryClass;
             } else {
                 multiclassList.push({ className: primaryClass, level: 1 });
             }
+            applyAutomaticSavingThrows(primaryClass);
             renderMulticlass();
             calculateStats();
+        }
+
+        function applyAutomaticSavingThrows(className) {
+            const profs = classSavingThrowProfs[className] || [];
+            savingThrowsData.forEach(st => {
+                const checkbox = document.getElementById(`st-prof-${st.key}`);
+                if (checkbox) {
+                    checkbox.checked = profs.includes(st.key);
+                }
+            });
         }
 
         function renderMulticlass() {
@@ -774,7 +892,7 @@
                 <div class="flex items-center gap-3 bg-black/40 border border-dnd-border rounded-xl p-3">
                     <div class="flex-1">
                         <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Classe ${idx + 1}</label>
-                        <select onchange="multiclassList[${idx}].className = this.value; if(idx===0) document.getElementById('char-class').value = this.value; calculateStats(); saveData();" class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-white text-xs">
+                        <select onchange="multiclassList[${idx}].className = this.value; if(idx===0) { document.getElementById('char-class').value = this.value; applyAutomaticSavingThrows(this.value); } calculateStats(); saveData();" class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-white text-xs">
                             <option value="Barbarian" ${mc.className === 'Barbarian' ? 'selected' : ''}>Bárbaro [d12]</option>
                             <option value="Bard" ${mc.className === 'Bard' ? 'selected' : ''}>Bardo [d8]</option>
                             <option value="Cleric" ${mc.className === 'Cleric' ? 'selected' : ''}>Clérigo [d8]</option>
@@ -801,10 +919,55 @@
             `).join('');
         }
 
+        function renderResources() {
+            const container = document.getElementById('resources-container');
+            if (!container) return;
+            if (resourcesList.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 italic text-center py-2">Nenhum recurso cadastrado.</p>';
+                return;
+            }
+            container.innerHTML = resourcesList.map((res, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-lg p-2.5 flex flex-wrap items-center gap-2">
+                    <div class="flex-1 min-w-[120px]">
+                        <label class="block text-[8px] uppercase font-bold text-gray-400">Nome do Recurso</label>
+                        <input type="text" value="${res.name}" oninput="resourcesList[${idx}].name = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-[8px] uppercase font-bold text-gray-400">Fonte</label>
+                        <input type="text" value="${res.source}" oninput="resourcesList[${idx}].source = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs" placeholder="Ex: Talento/Classe">
+                    </div>
+                    <div class="w-20 text-center">
+                        <label class="block text-[8px] uppercase font-bold text-gray-400">Qtd Atual</label>
+                        <input type="number" value="${res.current}" oninput="resourcesList[${idx}].current = parseInt(this.value) || 0; saveData();" class="w-full bg-black/60 border border-dnd-border rounded text-center py-1 text-green-400 text-xs font-bold">
+                    </div>
+                    <div class="w-20 text-center">
+                        <label class="block text-[8px] uppercase font-bold text-gray-400">Qtd Máxima</label>
+                        <input type="number" value="${res.max}" oninput="resourcesList[${idx}].max = parseInt(this.value) || 0; saveData();" class="w-full bg-black/60 border border-dnd-border rounded text-center py-1 text-dnd-gold text-xs font-bold">
+                    </div>
+                    <div class="pt-4">
+                        <button onclick="removeResourceRow(${idx})" class="text-red-400 hover:text-red-300 p-1 text-xs" title="Remover Recurso"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addResourceRow() {
+            resourcesList.push({ name: "Novo Recurso", source: "Geral", max: 3, current: 3 });
+            renderResources();
+            saveData();
+        }
+
+        function removeResourceRow(idx) {
+            resourcesList.splice(idx, 1);
+            renderResources();
+            saveData();
+        }
+
         function updateSumLevels() {
             let totalLvl = 0;
             multiclassList.forEach(mc => { totalLvl += mc.level; });
             document.getElementById('char-level-num').value = totalLvl;
+            autoCalculateSpellSlots();
         }
 
         function addMulticlassRow() {
@@ -873,6 +1036,13 @@
 
             document.getElementById('hp-max').value = Math.max(1, totalCalculatedHp);
 
+            const armorBonusVal = parseInt(document.getElementById('armor-bonus').value) || 0;
+            const shieldEquipped = document.getElementById('shield-equipped').checked;
+            const shieldBonusVal = shieldEquipped ? (parseInt(document.getElementById('shield-bonus').value) || 0) : 0;
+            const extraCaVal = parseInt(document.getElementById('armor-extra-bonus').value) || 0;
+            const totalCaCalc = armorBonusVal + shieldBonusVal + extraCaVal;
+            document.getElementById('val-ac').value = totalCaCalc;
+
             savingThrowsData.forEach(st => {
                 const isProf = document.getElementById(`st-prof-${st.key}`).checked;
                 const total = mods[st.key] + (isProf ? prof : 0);
@@ -896,16 +1066,63 @@
             document.getElementById('passive-perception').innerText = percTotal;
 
             const spellAbility = document.getElementById('spell-ability').value;
+            const extraDc = parseInt(document.getElementById('spell-extra-dc').value) || 0;
+            const extraAtk = parseInt(document.getElementById('spell-extra-atk').value) || 0;
+
             if (spellAbility !== 'none') {
                 const abilMod = mods[spellAbility];
-                const saveDc = 8 + prof + abilMod;
-                const atkBonus = prof + abilMod;
+                const saveDc = 8 + prof + abilMod + extraDc;
+                const atkBonus = prof + abilMod + extraAtk;
                 document.getElementById('spell-save-dc').innerText = saveDc;
                 document.getElementById('spell-atk-bonus').innerText = (atkBonus >= 0 ? '+' : '') + atkBonus;
             } else {
                 document.getElementById('spell-save-dc').innerText = '-';
                 document.getElementById('spell-atk-bonus').innerText = '-';
             }
+        }
+
+        function rollAbilityCheck(statKey) {
+            const statNames = { str: "Força", dex: "Destreza", con: "Constituição", int: "Inteligência", wis: "Sabedoria", cha: "Carisma" };
+            const modText = document.getElementById(`mod-${statKey}`).innerText;
+            const bonus = parseInt(modText) || 0;
+            const d20 = Math.floor(Math.random() * 20) + 1;
+            const total = d20 + bonus;
+
+            let critStr = "";
+            if (d20 === 20) critStr = " (CRÍTICO 20! 🌟)";
+            else if (d20 === 1) critStr = " (FALHA CRÍTICA 1! 💀)";
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `Teste de Atributo [<strong>${statNames[statKey]}</strong>]: 1d20(${d20}) ${bonus >= 0 ? '+' + bonus : bonus} = <strong>${total}</strong>${critStr}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            showModal(`Teste de ${statNames[statKey]}`, `Rolou 1d20 (${d20}) + mod (${bonus}) = ${total}${critStr}`);
+        }
+
+        function rollSavingThrow(stKey) {
+            const stNames = { str: "Resistência de Força", dex: "Resistência de Destreza", con: "Resistência de Constituição", int: "Resistência de Inteligência", wis: "Resistência de Sabedoria", cha: "Resistência de Carisma" };
+            const valText = document.getElementById(`st-val-${stKey}`).innerText;
+            const bonus = parseInt(valText) || 0;
+            const d20 = Math.floor(Math.random() * 20) + 1;
+            const total = d20 + bonus;
+
+            let critStr = "";
+            if (d20 === 20) critStr = " (CRÍTICO 20! 🌟)";
+            else if (d20 === 1) critStr = " (FALHA CRÍTICA 1! 💀)";
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `[<strong>${stNames[stKey]}</strong>]: 1d20(${d20}) ${bonus >= 0 ? '+' + bonus : bonus} = <strong>${total}</strong>${critStr}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            showModal(stNames[stKey], `Rolou 1d20 (${d20}) + bônus (${bonus}) = ${total}${critStr}`);
         }
 
         function rollSkillCheck(skillIndex) {
@@ -935,15 +1152,145 @@
             document.getElementById('exhaustion-val').innerText = `Nível ${level} (${level * -2} em D20)`;
         }
 
+        const fullCasterSlots = {
+            1:  [2,0,0,0,0,0,0,0,0],
+            2:  [3,0,0,0,0,0,0,0,0],
+            3:  [4,2,0,0,0,0,0,0,0],
+            4:  [4,3,0,0,0,0,0,0,0],
+            5:  [4,3,2,0,0,0,0,0,0],
+            6:  [4,3,3,0,0,0,0,0,0],
+            7:  [4,3,3,1,0,0,0,0,0],
+            8:  [4,3,3,2,0,0,0,0,0],
+            9:  [4,3,3,3,1,0,0,0,0],
+            10: [4,3,3,3,2,0,0,0,0],
+            11: [4,3,3,3,2,1,0,0,0],
+            12: [4,3,3,3,2,1,0,0,0],
+            13: [4,3,3,3,2,1,1,0,0],
+            14: [4,3,3,3,2,1,1,0,0],
+            15: [4,3,3,3,2,1,1,1,0],
+            16: [4,3,3,3,2,1,1,1,0],
+            17: [4,3,3,3,2,1,1,1,1],
+            18: [4,3,3,3,3,1,1,1,1],
+            19: [4,3,3,3,3,2,1,1,1],
+            20: [4,3,3,3,3,2,2,1,1]
+        };
+
+        const halfCasterSlots = {
+            1:  [0,0,0,0,0,0,0,0,0],
+            2:  [2,0,0,0,0,0,0,0,0],
+            3:  [3,0,0,0,0,0,0,0,0],
+            4:  [3,0,0,0,0,0,0,0,0],
+            5:  [4,2,0,0,0,0,0,0,0],
+            6:  [4,2,0,0,0,0,0,0,0],
+            7:  [4,3,0,0,0,0,0,0,0],
+            8:  [4,3,0,0,0,0,0,0,0],
+            9:  [4,3,2,0,0,0,0,0,0],
+            10: [4,3,2,0,0,0,0,0,0],
+            11: [4,3,3,0,0,0,0,0,0],
+            12: [4,3,3,0,0,0,0,0,0],
+            13: [4,3,3,1,0,0,0,0,0],
+            14: [4,3,3,1,0,0,0,0,0],
+            15: [4,3,3,2,0,0,0,0,0],
+            16: [4,3,3,2,0,0,0,0,0],
+            17: [4,3,3,3,1,0,0,0,0],
+            18: [4,3,3,3,1,0,0,0,0],
+            19: [4,3,3,3,2,0,0,0,0],
+            20: [4,3,3,3,2,0,0,0,0]
+        };
+
+        const thirdCasterSlots = {
+            1:  [0,0,0,0,0,0,0,0,0],
+            2:  [0,0,0,0,0,0,0,0,0],
+            3:  [2,0,0,0,0,0,0,0,0],
+            4:  [3,0,0,0,0,0,0,0,0],
+            5:  [3,0,0,0,0,0,0,0,0],
+            6:  [3,0,0,0,0,0,0,0,0],
+            7:  [4,2,0,0,0,0,0,0,0],
+            8:  [4,2,0,0,0,0,0,0,0],
+            9:  [4,2,0,0,0,0,0,0,0],
+            10: [4,3,0,0,0,0,0,0,0],
+            11: [4,3,0,0,0,0,0,0,0],
+            12: [4,3,0,0,0,0,0,0,0],
+            13: [4,3,2,0,0,0,0,0,0],
+            14: [4,3,2,0,0,0,0,0,0],
+            15: [4,3,2,0,0,0,0,0,0],
+            16: [4,3,3,0,0,0,0,0,0],
+            17: [4,3,3,0,0,0,0,0,0],
+            18: [4,3,3,0,0,0,0,0,0],
+            19: [4,3,3,1,0,0,0,0,0],
+            20: [4,3,3,1,0,0,0,0,0]
+        };
+
+        const pactMagicSlots = {
+            1:  {slots: 1, level: 1},
+            2:  {slots: 2, level: 1},
+            3:  {slots: 2, level: 2},
+            4:  {slots: 2, level: 2},
+            5:  {slots: 2, level: 3},
+            6:  {slots: 2, level: 3},
+            7:  {slots: 2, level: 4},
+            8:  {slots: 2, level: 4},
+            9:  {slots: 2, level: 5},
+            10: {slots: 2, level: 5},
+            11: {slots: 3, level: 5},
+            12: {slots: 3, level: 5},
+            13: {slots: 3, level: 5},
+            14: {slots: 3, level: 5},
+            15: {slots: 3, level: 5},
+            16: {slots: 3, level: 5},
+            17: {slots: 4, level: 5},
+            18: {slots: 4, level: 5},
+            19: {slots: 4, level: 5},
+            20: {slots: 4, level: 5}
+        };
+
+        function autoCalculateSpellSlots() {
+            const casterType = document.getElementById('spellcaster-type').value;
+            const lvl = Math.min(20, Math.max(1, parseInt(document.getElementById('char-level-num').value) || 1));
+
+            if (casterType === 'none') return;
+
+            for (let i = 1; i <= 9; i++) {
+                const maxInput = document.getElementById(`slot-max-${i}`);
+                if (maxInput) maxInput.value = 0;
+            }
+
+            if (casterType === 'full') {
+                const slots = fullCasterSlots[lvl] || [];
+                slots.forEach((val, idx) => {
+                    const maxInput = document.getElementById(`slot-max-${idx + 1}`);
+                    if (maxInput) maxInput.value = val;
+                });
+            } else if (casterType === 'half') {
+                const slots = halfCasterSlots[lvl] || [];
+                slots.forEach((val, idx) => {
+                    const maxInput = document.getElementById(`slot-max-${idx + 1}`);
+                    if (maxInput) maxInput.value = val;
+                });
+            } else if (casterType === 'third') {
+                const slots = thirdCasterSlots[lvl] || [];
+                slots.forEach((val, idx) => {
+                    const maxInput = document.getElementById(`slot-max-${idx + 1}`);
+                    if (maxInput) maxInput.value = val;
+                });
+            } else if (casterType === 'pact') {
+                const p = pactMagicSlots[lvl] || {slots: 1, level: 1};
+                const maxInput = document.getElementById(`slot-max-${p.level}`);
+                if (maxInput) maxInput.value = p.slots;
+            }
+
+            saveData();
+        }
+
         function renderDynamicComponents() {
             const stContainer = document.getElementById('saving-throws-container');
             stContainer.innerHTML = savingThrowsData.map(st => `
                 <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-3 py-2">
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="st-prof-${st.key}" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
-                        <span class="text-xs font-semibold text-gray-200 uppercase">${st.label}</span>
+                        <span onclick="rollSavingThrow('${st.key}')" class="text-xs font-semibold text-gray-200 uppercase cursor-pointer hover:text-dnd-gold transition underline" title="Clique para rolar teste de resistência">${st.label}</span>
                     </div>
-                    <span id="st-val-${st.key}" class="text-xs font-bold text-dnd-gold">+0</span>
+                    <span id="st-val-${st.key}" onclick="rollSavingThrow('${st.key}')" class="text-xs font-bold text-dnd-gold cursor-pointer hover:underline">+0</span>
                 </div>
             `).join('');
 
@@ -970,153 +1317,434 @@
                         <span class="text-[10px] uppercase font-bold text-dnd-gold block mb-1">${i}º Nível</span>
                         <div class="flex items-center justify-center gap-1">
                             <input type="number" id="slot-max-${i}" value="0" oninput="saveData()" class="w-8 bg-black/60 border border-dnd-border rounded text-center text-xs text-white font-bold py-0.5" title="Total">
-                            <span class="text-xs text-gray-500">/</span>
-                            <input type="number" id="slot-used-${i}" value="0" oninput="saveData()" class="w-8 bg-black/60 border border-dnd-border rounded text-center text-xs text-red-400 font-bold py-0.5" title="Gastos">
+                            <span class="text-gray-500">/</span>
+                            <input type="number" id="slot-used-${i}" value="0" oninput="saveData()" class="w-8 bg-black/60 border border-dnd-border rounded text-center text-xs text-green-400 font-bold py-0.5" title="Gastos">
                         </div>
                     </div>
                 `;
             }
             spellSlotsGrid.innerHTML = slotsHTML;
+
+            renderWeapons();
+            renderInventory();
+            renderSpells();
+            renderFeatureCards('species');
+            renderFeatureCards('class');
+            renderFeatureCards('feat');
+            renderMulticlass();
+            renderResources();
         }
 
-        let weaponsList = [
-            { name: "Espada Longa", atk: "+5", damage: "1d8 + 3 Cortante", mastery: "Sap (Desvantagem no próximo ataque)" }
-        ];
+        function renderWeapons() {
+            const tbody = document.getElementById('weapons-table-body');
+            if (!tbody) return;
+            if (weaponsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500 italic">Nenhuma arma cadastrada.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = weaponsList.map((w, idx) => `
+                <tr class="hover:bg-black/30 transition">
+                    <td class="p-3"><input type="text" value="${w.name}" oninput="weaponsList[${idx}].name = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-xs text-white"></td>
+                    <td class="p-3"><input type="text" value="${w.atk}" oninput="weaponsList[${idx}].atk = this.value; saveData();" class="w-20 bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-xs text-dnd-gold font-bold"></td>
+                    <td class="p-3"><input type="text" value="${w.damage}" oninput="weaponsList[${idx}].damage = this.value; saveData();" class="w-36 bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-xs text-white"></td>
+                    <td class="p-3"><input type="text" value="${w.mastery}" oninput="weaponsList[${idx}].mastery = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-xs text-gray-300"></td>
+                    <td class="p-3 text-right flex items-center justify-end gap-2">
+                        <button onclick="rollWeaponAttack(${idx})" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-2.5 py-1 rounded text-xs font-bold transition shadow" title="Rolar Ataque"><i class="fa-solid fa-dice-d20"></i></button>
+                        <button onclick="rollWeaponDamage(${idx})" class="bg-zinc-800 hover:bg-zinc-700 text-dnd-gold border border-dnd-gold/30 px-2.5 py-1 rounded text-xs font-bold transition shadow" title="Rolar Dano"><i class="fa-solid fa-burst"></i></button>
+                        <button onclick="removeWeaponRow(${idx})" class="text-red-400 hover:text-red-300 p-1 text-xs" title="Excluir Arma"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-        let inventoryItemsList = [
-            { name: "Poção de Cura", desc: "Restaura 2d4 + 2 pontos de vida.", rarity: "Comum", attunded: false, weight: 0.5 },
-            { name: "Anel de Proteção", desc: "+1 na CA e em testes de resistência.", rarity: "Raro", attunded: true, weight: 0.1 }
-        ];
+        function addWeaponRow() {
+            weaponsList.push({ name: "Adaga", atk: "+4", damage: "1d4 + 2", mastery: "Nick" });
+            renderWeapons();
+            saveData();
+        }
 
-        let spellsList = [
-            { name: "Mísseis Mágicos (1º)", time: "1 ação / 120 pés", comp: "V, S", conc: "Não", desc: "Cria três dardos brilhantes de energia mágica." }
-        ];
+        function removeWeaponRow(idx) {
+            weaponsList.splice(idx, 1);
+            renderWeapons();
+            saveData();
+        }
 
-        let speciesTraitsList = [
-            { name: "Visão no Escuro", source: "Espécie (Elfo)", desc: "Você enxerga na penumbra a até 18 metros." }
-        ];
+        function renderInventory() {
+            const container = document.getElementById('inventory-items-container');
+            if (!container) return;
+            if (inventoryItemsList.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 italic text-center py-4">Mochila vazia.</p>';
+                calculateTotalWeight();
+                return;
+            }
+            container.innerHTML = inventoryItemsList.map((item, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="text" value="${item.name}" oninput="inventoryItemsList[${idx}].name = this.value; saveData();" placeholder="Nome do Item" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
+                        <select onchange="inventoryItemsList[${idx}].rarity = this.value; saveData();" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold">
+                            <option value="Comum" ${item.rarity === 'Comum' ? 'selected' : ''}>Comum</option>
+                            <option value="Incomum" ${item.rarity === 'Incomum' ? 'selected' : ''}>Incomum</option>
+                            <option value="Raro" ${item.rarity === 'Raro' ? 'selected' : ''}>Raro</option>
+                            <option value="Muito Raro" ${item.rarity === 'Muito Raro' ? 'selected' : ''}>Muito Raro</option>
+                            <option value="Lendário" ${item.rarity === 'Lendário' ? 'selected' : ''}>Lendário</option>
+                        </select>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.1" value="${item.weight}" oninput="inventoryItemsList[${idx}].weight = parseFloat(this.value) || 0; calculateTotalWeight(); saveData();" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center py-1.5 text-xs text-white font-bold" title="Peso (lbs)">
+                            <span class="text-[10px] text-gray-400">lbs</span>
+                        </div>
+                        <label class="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer bg-black/60 px-2 py-1.5 rounded-lg border border-dnd-border">
+                            <input type="checkbox" ${item.attunded ? 'checked' : ''} onchange="inventoryItemsList[${idx}].attunded = this.checked; saveData();" class="accent-amber-500 rounded"> Sintonizado
+                        </label>
+                        <button onclick="removeInventoryItem(${idx})" class="text-red-400 hover:text-red-300 p-1.5 text-xs" title="Remover Item"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div>
+                        <textarea rows="2" oninput="inventoryItemsList[${idx}].desc = this.value; saveData();" placeholder="Descrição do item..." class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed">${item.desc || ''}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            calculateTotalWeight();
+        }
 
-        let classFeaturesList = [
-            { name: "Ação Surto", source: "Guerreiro (Nível 2)", desc: "Você pode realizar uma ação adicional." }
-        ];
+        function addInventoryItem() {
+            inventoryItemsList.push({ name: "Novo Item", desc: "Descrição...", rarity: "Comum", attunded: false, weight: 1 });
+            renderInventory();
+            saveData();
+        }
 
-        let featsList = [
-            { name: "Resistente (Tough)", source: "Origem / Geral", desc: "Seu HP máximo aumenta." }
-        ];
+        function removeInventoryItem(idx) {
+            inventoryItemsList.splice(idx, 1);
+            renderInventory();
+            saveData();
+        }
 
-        let characterAvatarData = "";
-        let diceRollHistory = [];
+        function calculateTotalWeight() {
+            let totalW = 0;
+            inventoryItemsList.forEach(item => {
+                totalW += (parseFloat(item.weight) || 0);
+            });
+            const cp = parseInt(document.getElementById('coin-cp').value) || 0;
+            const sp = parseInt(document.getElementById('coin-sp').value) || 0;
+            const ep = parseInt(document.getElementById('coin-ep').value) || 0;
+            const gp = parseInt(document.getElementById('coin-gp').value) || 0;
+            const pp = parseInt(document.getElementById('coin-pp').value) || 0;
+            const totalCoins = cp + sp + ep + gp + pp;
+            totalW += (totalCoins * 0.02); // 50 moedas = 1 lb
+
+            const weightEl = document.getElementById('total-weight-calc');
+            if (weightEl) weightEl.innerText = totalW.toFixed(1) + ' lbs';
+        }
+
+        function renderSpells() {
+            const container = document.getElementById('spells-list-container');
+            if (!container) return;
+            if (spellsList.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 italic text-center py-4">Nenhuma magia cadastrada.</p>';
+                return;
+            }
+            container.innerHTML = spellsList.map((spell, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="text" value="${spell.name}" oninput="spellsList[${idx}].name = this.value; saveData();" placeholder="Nome da Magia" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
+                        <select onchange="spellsList[${idx}].level = this.value; saveData();" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold">
+                            <option value="Truque" ${spell.level === 'Truque' ? 'selected' : ''}>Truque</option>
+                            <option value="1º Nível" ${spell.level === '1º Nível' ? 'selected' : ''}>1º Nível</option>
+                            <option value="2º Nível" ${spell.level === '2º Nível' ? 'selected' : ''}>2º Nível</option>
+                            <option value="3º Nível" ${spell.level === '3º Nível' ? 'selected' : ''}>3º Nível</option>
+                            <option value="4º Nível" ${spell.level === '4º Nível' ? 'selected' : ''}>4º Nível</option>
+                            <option value="5º Nível" ${spell.level === '5º Nível' ? 'selected' : ''}>5º Nível</option>
+                            <option value="6º Nível" ${spell.level === '6º Nível' ? 'selected' : ''}>6º Nível</option>
+                            <option value="7º Nível" ${spell.level === '7º Nível' ? 'selected' : ''}>7º Nível</option>
+                            <option value="8º Nível" ${spell.level === '8º Nível' ? 'selected' : ''}>8º Nível</option>
+                            <option value="9º Nível" ${spell.level === '9º Nível' ? 'selected' : ''}>9º Nível</option>
+                        </select>
+                        <input type="text" value="${spell.school || ''}" oninput="spellsList[${idx}].school = this.value; saveData();" placeholder="Escola (Ex: Evocação)" class="w-28 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-gray-300">
+                        <input type="text" value="${spell.damageExpr || ''}" oninput="spellsList[${idx}].damageExpr = this.value; saveData();" placeholder="Dano (Ex: 8d6)" class="w-28 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold" title="Expressão de Dano para Rolagem rápida">
+                        <label class="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer bg-black/60 px-2 py-1.5 rounded-lg border border-dnd-border">
+                            <input type="checkbox" ${spell.prepared ? 'checked' : ''} onchange="spellsList[${idx}].prepared = this.checked; saveData();" class="accent-amber-500 rounded"> Preparada
+                        </label>
+                        <button onclick="rollSpellDamageExpr(${idx})" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-2.5 py-1.5 rounded-lg text-xs font-bold transition shadow" title="Rolar Dano da Magia"><i class="fa-solid fa-burst"></i></button>
+                        <button onclick="removeSpellRow(${idx})" class="text-red-400 hover:text-red-300 p-1.5 text-xs" title="Remover Magia"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <input type="text" value="${spell.castingTime || ''}" oninput="spellsList[${idx}].castingTime = this.value; saveData();" placeholder="Tempo (Ex: 1 Ação)" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-[11px] text-gray-300">
+                        <input type="text" value="${spell.range || ''}" oninput="spellsList[${idx}].range = this.value; saveData();" placeholder="Alcance (Ex: 18m)" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-[11px] text-gray-300">
+                        <input type="text" value="${spell.components || ''}" oninput="spellsList[${idx}].components = this.value; saveData();" placeholder="Componentes (V, S, M)" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-[11px] text-gray-300">
+                        <input type="text" value="${spell.duration || ''}" oninput="spellsList[${idx}].duration = this.value; saveData();" placeholder="Duração (Ex: 1 min)" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1 text-[11px] text-gray-300">
+                    </div>
+                    <div>
+                        <textarea rows="2" oninput="spellsList[${idx}].desc = this.value; saveData();" placeholder="Descrição e efeitos da magia..." class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed">${spell.desc || ''}</textarea>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addSpellRow() {
+            spellsList.push({ name: "Nova Magia", level: "1º Nível", school: "Evocação", castingTime: "1 Ação", range: "9m", components: "V, S", duration: "Instantânea", prepared: true, desc: "Efeitos...", damageExpr: "2d6" });
+            renderSpells();
+            saveData();
+        }
+
+        function removeSpellRow(idx) {
+            spellsList.splice(idx, 1);
+            renderSpells();
+            saveData();
+        }
+
+        function renderFeatureCards(type) {
+            let containerId = '';
+            let listRef = null;
+            if (type === 'species') { containerId = 'species-traits-container'; listRef = speciesTraitsList; }
+            else if (type === 'class') { containerId = 'class-features-container'; listRef = classFeaturesList; }
+            else if (type === 'feat') { containerId = 'feats-container'; listRef = featsList; }
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (listRef.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 italic text-center py-3">Nenhum item cadastrado.</p>';
+                return;
+            }
+            container.innerHTML = listRef.map((item, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <input type="text" value="${item.title}" oninput="${type === 'species' ? 'speciesTraitsList' : type === 'class' ? 'classFeaturesList' : 'featsList'}[${idx}].title = this.value; saveData();" placeholder="Título" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
+                        <button onclick="removeFeatureCard('${type}', ${idx})" class="text-red-400 hover:text-red-300 p-1.5 text-xs" title="Remover"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div>
+                        <textarea rows="2" oninput="${type === 'species' ? 'speciesTraitsList' : type === 'class' ? 'classFeaturesList' : 'featsList'}[${idx}].desc = this.value; saveData();" placeholder="Descrição do recurso..." class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed">${item.desc || ''}</textarea>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addFeatureCard(type) {
+            const newItem = { title: "Novo Recurso", desc: "Descrição..." };
+            if (type === 'species') speciesTraitsList.push(newItem);
+            else if (type === 'class') classFeaturesList.push(newItem);
+            else if (type === 'feat') featsList.push(newItem);
+            renderFeatureCards(type);
+            saveData();
+        }
+
+        function removeFeatureCard(type, idx) {
+            if (type === 'species') speciesTraitsList.splice(idx, 1);
+            else if (type === 'class') classFeaturesList.splice(idx, 1);
+            else if (type === 'feat') featsList.splice(idx, 1);
+            renderFeatureCards(type);
+            saveData();
+        }
+
+        function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                characterAvatarData = e.target.result;
+                const preview = document.getElementById('avatar-preview');
+                preview.src = characterAvatarData;
+                preview.classList.remove('hidden');
+                document.getElementById('avatar-placeholder').classList.add('hidden');
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeAvatar() {
+            characterAvatarData = "";
+            const preview = document.getElementById('avatar-preview');
+            preview.src = "";
+            preview.classList.add('hidden');
+            document.getElementById('avatar-placeholder').classList.remove('hidden');
+            document.getElementById('avatar-input').value = "";
+            saveData();
+        }
 
         function rollDice(sides) {
-            const roll = Math.floor(Math.random() * sides) + 1;
-            const customMod = parseInt(document.getElementById('dice-custom-mod').value) || 0;
-            const total = roll + customMod;
-
-            let breakdown = `D${sides} = ${roll}`;
-            if (customMod !== 0) {
-                breakdown += ` ${customMod >= 0 ? '+' : ''}${customMod} = ${total}`;
-            }
+            const mod = parseInt(document.getElementById('dice-custom-mod').value) || 0;
+            const d = Math.floor(Math.random() * sides) + 1;
+            const total = d + mod;
 
             document.getElementById('dice-last-result').innerText = total;
-            document.getElementById('dice-last-breakdown').innerText = breakdown;
-
-            let isCrit = false;
-            let critText = "";
-            if (sides === 20) {
-                if (roll === 20) { isCrit = true; critText = " (CRÍTICO 20! 🌟)"; }
-                else if (roll === 1) { isCrit = true; critText = " (FALHA CRÍTICA 1! 💀)"; }
-            }
+            document.getElementById('dice-last-breakdown').innerText = `1d${sides} (${d}) ${mod >= 0 ? '+' + mod : mod}`;
 
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             diceRollHistory.unshift({
                 time: timeStr,
-                text: `Rolou 1d${sides}${customMod !== 0 ? (customMod > 0 ? '+' + customMod : customMod) : ''}: ${roll} = <strong>${total}</strong>${critText}`
+                text: `Rolagem 1d${sides}: 1d${sides}(${d}) ${mod >= 0 ? '+' + mod : mod} = <strong>${total}</strong>`
             });
             if (diceRollHistory.length > 15) diceRollHistory.pop();
             renderDiceHistory();
-
-            if (isCrit) {
-                showModal(roll === 20 ? "Sucesso Crítico!" : "Falha Crítica!", `Rolagem de D20 resultou em ${roll}!`);
-            }
         }
 
         function rollCustomDiceExpression() {
-            const exprInput = document.getElementById('custom-dice-expr').value.trim();
-            if (!exprInput) {
-                showModal("Aviso", "Digite uma expressão válida, como 2d6+1d8+3.", true);
-                return;
-            }
-
+            const expr = document.getElementById('custom-dice-expr').value.trim();
+            if (!expr) return;
             try {
-                // Sanitize and support both + and - signs in expressions like 2d6+1d8-2 or 2d6 - 1
-                // Replace subtraction with +- for uniform splitting
-                let normalized = exprInput.toLowerCase().replace(/\s+/g, '').replace(/-/g, '+-');
-                let parts = normalized.split('+').filter(p => p.length > 0);
-                
+                let cleanExpr = expr.replace(/\s+/g, '').toLowerCase();
+                let regex = /([+-]?\d*d\d+|[+-]?\d+)/g;
+                let matches = cleanExpr.match(regex);
+                if (!matches) throw new Error("Expressão inválida");
+
                 let totalSum = 0;
                 let breakdownParts = [];
 
-                parts.forEach(part => {
-                    if (part.includes('d')) {
-                        let subParts = part.split('d');
-                        let countStr = subParts[0];
-                        let count = countStr === '' ? 1 : (countStr === '-' ? -1 : parseInt(countStr) || 1);
-                        
-                        let rightSide = subParts[1];
-                        let sides = parseInt(rightSide) || 6;
-                        
-                        let subSum = 0;
-                        let rollsArr = [];
+                matches.forEach(m => {
+                    if (m.includes('d')) {
+                        let parts = m.split('d');
+                        let count = parts[0] === '' ? 1 : (parts[0] === '-' ? -1 : parseInt(parts[0]));
+                        let sides = parseInt(parts[1]);
+                        let subTotal = 0;
+                        let rolls = [];
                         let absCount = Math.abs(count);
-                        
                         for (let i = 0; i < absCount; i++) {
                             let r = Math.floor(Math.random() * sides) + 1;
-                            subSum += r;
-                            rollsArr.push(r);
+                            rolls.push(r);
+                            subTotal += r;
                         }
-                        
                         if (count < 0) {
-                            subSum = -subSum;
-                            totalSum += subSum;
-                            breakdownParts.push(`-${absCount}d${sides}[${rollsArr.join(',')}]`);
+                            subTotal = -subTotal;
+                            totalSum += subTotal;
+                            breakdownParts.push(`-${absCount}d${sides}[${rolls.join(',')}]`);
                         } else {
-                            totalSum += subSum;
-                            breakdownParts.push(`${count}d${sides}[${rollsArr.join(',')}]`);
+                            totalSum += subTotal;
+                            breakdownParts.push(`${absCount}d${sides}[${rolls.join(',')}]`);
                         }
                     } else {
-                        let num = parseInt(part) || 0;
+                        let num = parseInt(m);
                         totalSum += num;
-                        breakdownParts.push(`${num >= 0 ? '+' + num : num}`);
+                        breakdownParts.push(num >= 0 ? `+${num}` : `${num}`);
                     }
                 });
 
                 document.getElementById('dice-last-result').innerText = totalSum;
-                document.getElementById('dice-last-breakdown').innerText = `${exprInput} = ${totalSum}`;
+                document.getElementById('dice-last-breakdown').innerText = `${expr} => ${breakdownParts.join(' ')}`;
 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 diceRollHistory.unshift({
                     time: timeStr,
-                    text: `Expressão [${exprInput}] = <strong>${totalSum}</strong> (${breakdownParts.join(' ')})`
+                    text: `[${expr}]: <strong>${totalSum}</strong> (${breakdownParts.join(' ')})`
                 });
                 if (diceRollHistory.length > 15) diceRollHistory.pop();
                 renderDiceHistory();
 
-            } catch (e) {
-                showModal("Erro na Expressão", "Formato inválido. Use o padrão ex: 2d6+1d8+3", true);
+                showModal("Resultado da Rolagem", `Expressão: ${expr}\nResultado Total: ${totalSum}\nDetalhes: ${breakdownParts.join(' ')}`);
+            } catch(e) {
+                showModal("Erro na Expressão", "Formato inválido. Use formatos como 2d6+1d8+3.", true);
+            }
+        }
+
+        function rollWeaponAttack(idx) {
+            const w = weaponsList[idx];
+            let bonus = parseInt(w.atk) || 0;
+            let d20 = Math.floor(Math.random() * 20) + 1;
+            let total = d20 + bonus;
+            let crit = d20 === 20 ? " (CRÍTICO 20! 🌟)" : (d20 === 1 ? " (FALHA CRÍTICA 1! 💀)" : "");
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `Ataque [<strong>${w.name}</strong>]: 1d20(${d20}) ${bonus >= 0 ? '+' + bonus : bonus} = <strong>${total}</strong>${crit}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            showModal(`Ataque com ${w.name}`, `1d20 (${d20}) + ${bonus} = ${total}${crit}`);
+        }
+
+        function rollWeaponDamage(idx) {
+            const w = weaponsList[idx];
+            rollExprString(w.damage, `Dano [${w.name}]`);
+        }
+
+        function rollSpellDamageExpr(idx) {
+            const s = spellsList[idx];
+            if (!s.damageExpr) {
+                showModal("Aviso", "Esta magia não possui expressão de dano configurada.", true);
+                return;
+            }
+            rollExprString(s.damageExpr, `Dano [Magia: ${s.name}]`);
+        }
+
+        function rollSpellAttack() {
+            const atkBonusText = document.getElementById('spell-atk-bonus').innerText;
+            const bonus = parseInt(atkBonusText) || 0;
+            const d20 = Math.floor(Math.random() * 20) + 1;
+            const total = d20 + bonus;
+            let crit = d20 === 20 ? " (CRÍTICO 20! 🌟)" : (d20 === 1 ? " (FALHA CRÍTICA 1! 💀)" : "");
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `Ataque Mágico: 1d20(${d20}) ${bonus >= 0 ? '+' + bonus : bonus} = <strong>${total}</strong>${crit}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            showModal("Ataque Mágico", `1d20 (${d20}) + ${bonus} = ${total}${crit}`);
+        }
+
+        function rollExprString(expr, title) {
+            try {
+                let cleanExpr = expr.replace(/\s+/g, '').toLowerCase();
+                let regex = /([+-]?\d*d\d+|[+-]?\d+)/g;
+                let matches = cleanExpr.match(regex);
+                if (!matches) throw new Error("Erro");
+
+                let totalSum = 0;
+                let breakdownParts = [];
+
+                matches.forEach(m => {
+                    if (m.includes('d')) {
+                        let parts = m.split('d');
+                        let count = parts[0] === '' ? 1 : (parts[0] === '-' ? -1 : parseInt(parts[0]));
+                        let sides = parseInt(parts[1]);
+                        let subTotal = 0;
+                        let rolls = [];
+                        let absCount = Math.abs(count);
+                        for (let i = 0; i < absCount; i++) {
+                            let r = Math.floor(Math.random() * sides) + 1;
+                            rolls.push(r);
+                            subTotal += r;
+                        }
+                        if (count < 0) {
+                            subTotal = -subTotal;
+                            totalSum += subTotal;
+                            breakdownParts.push(`-${absCount}d${sides}[${rolls.join(',')}]`);
+                        } else {
+                            totalSum += subTotal;
+                            breakdownParts.push(`${absCount}d${sides}[${rolls.join(',')}]`);
+                        }
+                    } else {
+                        let num = parseInt(m);
+                        totalSum += num;
+                        breakdownParts.push(num >= 0 ? `+${num}` : `${num}`);
+                    }
+                });
+
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                diceRollHistory.unshift({
+                    time: timeStr,
+                    text: `${title} [${expr}]: <strong>${totalSum}</strong> (${breakdownParts.join(' ')})`
+                });
+                if (diceRollHistory.length > 15) diceRollHistory.pop();
+                renderDiceHistory();
+
+                showModal(title, `Expressão: ${expr}\nTotal: ${totalSum}\nDetalhes: ${breakdownParts.join(' ')}`);
+            } catch(e) {
+                showModal("Erro na Rolagem", "Não foi possível calcular o dano com a expressão fornecida.", true);
             }
         }
 
         function renderDiceHistory() {
-            const container = document.getElementById('dice-history-list');
-            if (!container) return;
+            const listEl = document.getElementById('dice-history-list');
+            if (!listEl) return;
             if (diceRollHistory.length === 0) {
-                container.innerHTML = '<span class="text-gray-500 italic">As rolagens aparecerão aqui...</span>';
+                listEl.innerHTML = '<span class="text-gray-500 italic">As rolagens aparecerão aqui...</span>';
                 return;
             }
-            container.innerHTML = diceRollHistory.map(item => `
-                <div class="flex items-center justify-between border-b border-dnd-border/40 pb-1">
-                    <span>${item.text}</span>
-                    <span class="text-[10px] text-gray-500">${item.time}</span>
+            listEl.innerHTML = diceRollHistory.map(h => `
+                <div class="bg-black/40 border border-dnd-border rounded px-2.5 py-1 text-xs flex justify-between items-center">
+                    <span>${h.text}</span>
+                    <span class="text-[9px] text-gray-500 ml-2">${h.time}</span>
                 </div>
             `).join('');
         }
@@ -1126,274 +1754,82 @@
             renderDiceHistory();
         }
 
-        function uploadAvatar(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                characterAvatarData = e.target.result;
-                displayAvatar();
-                saveData();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeAvatar() {
-            characterAvatarData = "";
-            displayAvatar();
-            saveData();
-        }
-
-        function displayAvatar() {
-            const preview = document.getElementById('avatar-preview');
-            const placeholder = document.getElementById('avatar-placeholder');
-            if (characterAvatarData) {
-                preview.src = characterAvatarData;
-                preview.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            } else {
-                preview.src = "";
-                preview.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-            }
-        }
-
-        function renderWeapons() {
-            const tbody = document.getElementById('weapons-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = weaponsList.map((w, idx) => `
-                <tr>
-                    <td class="p-2.5"><input type="text" value="${w.name}" oninput="weaponsList[${idx}].name = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
-                    <td class="p-2.5"><input type="text" value="${w.atk}" oninput="weaponsList[${idx}].atk = this.value; saveData()" class="w-20 bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
-                    <td class="p-2.5"><input type="text" value="${w.damage}" oninput="weaponsList[${idx}].damage = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
-                    <td class="p-2.5"><input type="text" value="${w.mastery}" oninput="weaponsList[${idx}].mastery = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
-                    <td class="p-2.5 text-right"><button onclick="removeWeapon(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        function addWeaponRow() {
-            weaponsList.push({ name: "Nova Arma", atk: "+3", damage: "1d6", mastery: "Nenhuma" });
-            renderWeapons();
-            saveData();
-        }
-
-        function removeWeapon(idx) {
-            weaponsList.splice(idx, 1);
-            renderWeapons();
-            saveData();
-        }
-
-        function renderInventoryItems() {
-            const container = document.getElementById('inventory-items-container');
-            if (!container) return;
-            container.innerHTML = inventoryItemsList.map((item, idx) => `
-                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-                        <div class="sm:col-span-4">
-                            <input type="text" value="${item.name}" placeholder="Nome do Item" oninput="inventoryItemsList[${idx}].name = this.value; saveData(); calculateTotalWeight();" class="w-full bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-white text-xs font-semibold">
-                        </div>
-                        <div class="sm:col-span-3">
-                            <select onchange="inventoryItemsList[${idx}].rarity = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-xs text-dnd-gold">
-                                <option value="Comum" ${item.rarity === 'Comum' ? 'selected' : ''}>Comum</option>
-                                <option value="Incomum" ${item.rarity === 'Incomum' ? 'selected' : ''}>Incomum</option>
-                                <option value="Raro" ${item.rarity === 'Raro' ? 'selected' : ''}>Raro</option>
-                                <option value="Muito Raro" ${item.rarity === 'Muito Raro' ? 'selected' : ''}>Muito Raro</option>
-                                <option value="Lendário" ${item.rarity === 'Lendário' ? 'selected' : ''}>Lendário</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-2 flex items-center justify-center gap-1.5">
-                            <input type="checkbox" id="attune-${idx}" ${item.attunded ? 'checked' : ''} onchange="inventoryItemsList[${idx}].attunded = this.checked; saveData();" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
-                            <label for="attune-${idx}" class="text-[10px] text-gray-300 uppercase cursor-pointer">Sinton.</label>
-                        </div>
-                        <div class="sm:col-span-2 flex items-center gap-1">
-                            <input type="number" step="0.1" value="${item.weight}" placeholder="Peso" oninput="inventoryItemsList[${idx}].weight = parseFloat(this.value) || 0; saveData(); calculateTotalWeight();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs text-center">
-                            <span class="text-[10px] text-gray-400">lbs</span>
-                        </div>
-                        <div class="sm:col-span-1 text-right">
-                            <button onclick="removeInventoryItem(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    <div>
-                        <textarea placeholder="Descrição..." oninput="inventoryItemsList[${idx}].desc = this.value; saveData();" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-dnd-gold">${item.desc || ''}</textarea>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-xs text-gray-500 italic text-center py-4">Nenhum item cadastrado.</p>';
-            calculateTotalWeight();
-        }
-
-        function addInventoryItem() {
-            inventoryItemsList.push({ name: "Novo Item", desc: "", rarity: "Comum", attunded: false, weight: 1.0 });
-            renderInventoryItems();
-            saveData();
-        }
-
-        function removeInventoryItem(idx) {
-            inventoryItemsList.splice(idx, 1);
-            renderInventoryItems();
-            saveData();
-        }
-
-        function calculateTotalWeight() {
-            let total = 0;
-            inventoryItemsList.forEach(item => { total += (parseFloat(item.weight) || 0); });
-            const el = document.getElementById('total-weight-calc');
-            if (el) el.innerText = total.toFixed(1) + ' lbs';
-        }
-
-        function renderFeatureCards() {
-            const speciesContainer = document.getElementById('species-traits-container');
-            if (speciesContainer) {
-                speciesContainer.innerHTML = speciesTraitsList.map((item, idx) => `
-                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                        <div class="flex items-center gap-2">
-                            <input type="text" value="${item.name}" oninput="speciesTraitsList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
-                            <input type="text" value="${item.source}" oninput="speciesTraitsList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
-                            <button onclick="removeFeatureCard('species', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                        <textarea oninput="speciesTraitsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
-                    </div>
-                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhum traço de espécie.</p>';
-            }
-
-            const classContainer = document.getElementById('class-features-container');
-            if (classContainer) {
-                classContainer.innerHTML = classFeaturesList.map((item, idx) => `
-                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                        <div class="flex items-center gap-2">
-                            <input type="text" value="${item.name}" oninput="classFeaturesList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
-                            <input type="text" value="${item.source}" oninput="classFeaturesList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
-                            <button onclick="removeFeatureCard('class', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                        <textarea oninput="classFeaturesList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
-                    </div>
-                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhuma característica.</p>';
-            }
-
-            const featsContainer = document.getElementById('feats-container');
-            if (featsContainer) {
-                featsContainer.innerHTML = featsList.map((item, idx) => `
-                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                        <div class="flex items-center gap-2">
-                            <input type="text" value="${item.name}" oninput="featsList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
-                            <input type="text" value="${item.source}" oninput="featsList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
-                            <button onclick="removeFeatureCard('feat', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                        <textarea oninput="featsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
-                    </div>
-                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhum talento.</p>';
-            }
-        }
-
-        function addFeatureCard(type) {
-            if (type === 'species') speciesTraitsList.push({ name: "Novo Traço", source: "Espécie", desc: "..." });
-            else if (type === 'class') classFeaturesList.push({ name: "Novo Recurso", source: "Classe", desc: "..." });
-            else if (type === 'feat') featsList.push({ name: "Novo Talento", source: "Geral", desc: "..." });
-            renderFeatureCards();
-            saveData();
-        }
-
-        function removeFeatureCard(type, idx) {
-            if (type === 'species') speciesTraitsList.splice(idx, 1);
-            else if (type === 'class') classFeaturesList.splice(idx, 1);
-            else if (type === 'feat') featsList.splice(idx, 1);
-            renderFeatureCards();
-            saveData();
-        }
-
-        function renderSpellsTable() {
-            const container = document.getElementById('spells-list-container');
-            if (!container) return;
-            container.innerHTML = spellsList.map((s, idx) => `
-                <div class="bg-black/40 border border-dnd-border rounded-xl p-4 space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
-                        <div class="md:col-span-2">
-                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Nome / Nível</label>
-                            <input type="text" value="${s.name}" oninput="spellsList[${idx}].name = this.value; saveData()" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Tempo de Conjuração</label>
-                            <input type="text" value="${s.time}" oninput="spellsList[${idx}].time = this.value; saveData()" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Componentes / Concen.</label>
-                            <div class="flex gap-1">
-                                <input type="text" value="${s.comp}" oninput="spellsList[${idx}].comp = this.value; saveData()" class="w-1/2 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs" title="Componentes (V,S,M)">
-                                <input type="text" value="${s.conc}" oninput="spellsList[${idx}].conc = this.value; saveData()" class="w-1/2 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs" title="Concentração">
-                            </div>
-                        </div>
-                        <div class="text-right pt-4">
-                            <button onclick="removeSpellRow(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    <div>
-                        <textarea oninput="spellsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300" placeholder="Efeito da magia...">${s.desc}</textarea>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-xs text-gray-500 italic text-center py-4">Nenhuma magia cadastrada.</p>';
-        }
-
-        function addSpellRow() {
-            spellsList.push({ name: "Nova Magia", time: "1 ação", comp: "V, S", conc: "Não", desc: "..." });
-            renderSpellsTable();
-            saveData();
-        }
-
-        function removeSpellRow(idx) {
-            spellsList.splice(idx, 1);
-            renderSpellsTable();
-            saveData();
-        }
-
         function triggerShortRest() {
-            showModal("Descanso Curto", "Você pode gastar Dados de Vida para recuperar pontos de vida. Seus recursos de descanso curto foram redefinidos.");
+            for (let i = 1; i <= 9; i++) {
+                const used = document.getElementById(`slot-used-${i}`);
+                if (used) used.value = 0;
+            }
+            resourcesList.forEach(res => {
+                res.current = res.max;
+            });
+            renderResources();
+            saveData();
+            showModal("Descanso Curto Realizado", "Recursos e espaços de magia restaurados (conforme regras aplicáveis).");
         }
 
         function triggerLongRest() {
-            const maxHp = document.getElementById('hp-max').value;
-            document.getElementById('hp-current').value = maxHp;
+            const hpMax = document.getElementById('hp-max').value;
+            document.getElementById('hp-current').value = hpMax;
             document.getElementById('hp-temp').value = 0;
             document.getElementById('exhaustion-level').value = 0;
             updateExhaustion();
-            
+
             for (let i = 1; i <= 9; i++) {
-                const usedInput = document.getElementById(`slot-used-${i}`);
-                if (usedInput) usedInput.value = 0;
+                const used = document.getElementById(`slot-used-${i}`);
+                if (used) used.value = 0;
             }
 
+            resourcesList.forEach(res => {
+                res.current = res.max;
+            });
+            renderResources();
+
+            ['ds-succ-1', 'ds-succ-2', 'ds-succ-3', 'ds-fail-1', 'ds-fail-2', 'ds-fail-3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = false;
+            });
+
+            calculateStats();
             saveData();
-            showModal("Descanso Longo", "Seu HP foi totalmente restaurado, exaustão zerada e espaços de magia recuperados com sucesso!");
+            showModal("Descanso Longo Concluído", "PV restaurados ao máximo, PV temporários removidos, exaustão zerada e slots recuperados!");
         }
 
-        function saveData(manual = false) {
+        function saveData(notify = false) {
             const data = {
                 name: document.getElementById('char-name').value,
                 pronouns: document.getElementById('char-pronouns').value,
-                charClass: document.getElementById('char-class').value,
+                class: document.getElementById('char-class').value,
+                subclass: document.getElementById('char-subclass').value,
                 species: document.getElementById('char-species').value,
-                levelNum: document.getElementById('char-level-num').value,
+                level: document.getElementById('char-level-num').value,
                 background: document.getElementById('char-background').value,
                 alignment: document.getElementById('char-alignment').value,
                 player: document.getElementById('char-player').value,
                 xp: document.getElementById('char-xp').value,
-                multiclassList: multiclassList,
-                ac: document.getElementById('val-ac').value,
+                multiclassList,
+                resourcesList,
+                avatar: characterAvatarData,
                 speed: document.getElementById('val-speed').value,
-                inspiration: document.getElementById('heroic-inspiration').checked,
+                armorName: document.getElementById('armor-name').value,
+                armorBonus: document.getElementById('armor-bonus').value,
+                shieldEquipped: document.getElementById('shield-equipped').checked,
+                shieldName: document.getElementById('shield-name').value,
+                shieldBonus: document.getElementById('shield-bonus').value,
+                armorExtraDesc: document.getElementById('armor-extra-desc').value,
+                armorExtraBonus: document.getElementById('armor-extra-bonus').value,
+                heroicInspiration: document.getElementById('heroic-inspiration').checked,
                 hpCurrent: document.getElementById('hp-current').value,
                 hpTemp: document.getElementById('hp-temp').value,
                 hitDice: document.getElementById('hit-dice').value,
                 exhaustionLevel: document.getElementById('exhaustion-level').value,
-                dsSucc: [
-                    document.getElementById('ds-succ-1').checked,
-                    document.getElementById('ds-succ-2').checked,
-                    document.getElementById('ds-succ-3').checked
-                ],
-                dsFail: [
-                    document.getElementById('ds-fail-1').checked,
-                    document.getElementById('ds-fail-2').checked,
-                    document.getElementById('ds-fail-3').checked
-                ],
+                deathSaves: {
+                    s1: document.getElementById('ds-succ-1').checked,
+                    s2: document.getElementById('ds-succ-2').checked,
+                    s3: document.getElementById('ds-succ-3').checked,
+                    f1: document.getElementById('ds-fail-1').checked,
+                    f2: document.getElementById('ds-fail-2').checked,
+                    f3: document.getElementById('ds-fail-3').checked
+                },
                 stats: {
                     str: document.getElementById('stat-str').value,
                     dex: document.getElementById('stat-dex').value,
@@ -1404,8 +1840,9 @@
                 },
                 featTough: document.getElementById('feat-tough').checked,
                 traitDwarf: document.getElementById('trait-dwarf').checked,
-                savingThrowsProfs: savingThrowsData.map(st => document.getElementById(`st-prof-${st.key}`).checked),
-                skillsProfs: skillsData.map((_, idx) => document.getElementById(`skill-prof-${idx}`).value),
+                savingThrowsProfs: savingThrowsData.map(st => ({ key: st.key, checked: document.getElementById(`st-prof-${st.key}`).checked })),
+                skillsProfs: skillsData.map((sk, idx) => document.getElementById(`skill-prof-${idx}`).value),
+                weaponsList,
                 coins: {
                     cp: document.getElementById('coin-cp').value,
                     sp: document.getElementById('coin-sp').value,
@@ -1413,155 +1850,124 @@
                     gp: document.getElementById('coin-gp').value,
                     pp: document.getElementById('coin-pp').value
                 },
-                equipmentNotes: document.getElementById('char-equipment').value,
-                spellAbility: document.getElementById('spell-ability').value,
-                spellSlots: Array.from({length: 9}, (_, i) => ({
-                    max: document.getElementById(`slot-max-${i+1}`).value,
-                    used: document.getElementById(`slot-used-${i+1}`).value
-                })),
-                proficiencies: {
-                    armor: document.getElementById('prof-armor').value,
-                    weapons: document.getElementById('prof-weapons').value,
-                    tools: document.getElementById('prof-tools').value,
-                    languages: document.getElementById('prof-languages').value
-                },
-                bio: {
-                    age: document.getElementById('bio-age').value,
-                    height: document.getElementById('bio-height').value,
-                    weight: document.getElementById('bio-weight').value,
-                    eyes: document.getElementById('bio-eyes').value,
-                    skin: document.getElementById('bio-skin').value,
-                    hair: document.getElementById('bio-hair').value,
-                    traits: document.getElementById('role-traits').value,
-                    ideals: document.getElementById('role-ideals').value,
-                    bonds: document.getElementById('role-bonds').value,
-                    flaws: document.getElementById('role-flaws').value,
-                    allies: document.getElementById('bio-allies').value,
-                    quests: document.getElementById('bio-quests').value
-                },
-                weaponsList,
                 inventoryItemsList,
+                charEquipment: document.getElementById('char-equipment').value,
+                spellcasterType: document.getElementById('spellcaster-type').value,
+                spellAbility: document.getElementById('spell-ability').value,
+                spellExtraDc: document.getElementById('spell-extra-dc').value,
+                spellExtraAtk: document.getElementById('spell-extra-atk').value,
+                spellSlotsMax: Array.from({length: 9}, (_, i) => document.getElementById(`slot-max-${i+1}`).value),
+                spellSlotsUsed: Array.from({length: 9}, (_, i) => document.getElementById(`slot-used-${i+1}`).value),
                 spellsList,
                 speciesTraitsList,
                 classFeaturesList,
                 featsList,
-                characterAvatarData
+                profArmor: document.getElementById('prof-armor').value,
+                profWeapons: document.getElementById('prof-weapons').value,
+                profTools: document.getElementById('prof-tools').value,
+                profLanguages: document.getElementById('prof-languages').value,
+                bioAge: document.getElementById('bio-age').value,
+                bioHeight: document.getElementById('bio-height').value,
+                bioWeight: document.getElementById('bio-weight').value,
+                bioEyes: document.getElementById('bio-eyes').value,
+                bioSkin: document.getElementById('bio-skin').value,
+                bioHair: document.getElementById('bio-hair').value,
+                roleTraits: document.getElementById('role-traits').value,
+                roleIdeals: document.getElementById('role-ideals').value,
+                roleBonds: document.getElementById('role-bonds').value,
+                roleFlaws: document.getElementById('role-flaws').value,
+                bioAllies: document.getElementById('bio-allies').value,
+                bioQuests: document.getElementById('bio-quests').value
             };
 
             localStorage.setItem('dnd2024_porquin_sheet', JSON.stringify(data));
-            if (manual) {
-                showModal("Sucesso", "Ficha salva com sucesso no navegador!");
+            if (notify) {
+                showModal("Ficha Salva", "Todos os dados da ficha foram salvos com sucesso no navegador!");
             }
         }
 
         function loadData() {
             const raw = localStorage.getItem('dnd2024_porquin_sheet');
-            if (!raw) return;
+            if (!raw) {
+                renderDynamicComponents();
+                calculateStats();
+                return;
+            }
             try {
                 const data = JSON.parse(raw);
-                if (data.name !== undefined) document.getElementById('char-name').value = data.name;
-                if (data.pronouns !== undefined) document.getElementById('char-pronouns').value = data.pronouns;
-                if (data.charClass !== undefined) document.getElementById('char-class').value = data.charClass;
-                if (data.species !== undefined) document.getElementById('char-species').value = data.species;
-                if (data.levelNum !== undefined) document.getElementById('char-level-num').value = data.levelNum;
-                if (data.background !== undefined) document.getElementById('char-background').value = data.background;
-                if (data.alignment !== undefined) document.getElementById('char-alignment').value = data.alignment;
-                if (data.player !== undefined) document.getElementById('char-player').value = data.player;
-                if (data.xp !== undefined) document.getElementById('char-xp').value = data.xp;
-                
-                if (data.multiclassList) {
-                    multiclassList = data.multiclassList;
-                    renderMulticlass();
+                document.getElementById('char-name').value = data.name || "";
+                document.getElementById('char-pronouns').value = data.pronouns || "";
+                document.getElementById('char-class').value = data.class || "Fighter";
+                document.getElementById('char-subclass').value = data.subclass || "";
+                document.getElementById('char-species').value = data.species || "";
+                document.getElementById('char-level-num').value = data.level || 1;
+                document.getElementById('char-background').value = data.background || "";
+                document.getElementById('char-alignment').value = data.alignment || "";
+                document.getElementById('char-player').value = data.player || "";
+                document.getElementById('char-xp').value = data.xp || 0;
+
+                if (data.multiclassList) multiclassList = data.multiclassList;
+                if (data.resourcesList) resourcesList = data.resourcesList;
+
+                if (data.avatar) {
+                    characterAvatarData = data.avatar;
+                    const preview = document.getElementById('avatar-preview');
+                    preview.src = characterAvatarData;
+                    preview.classList.remove('hidden');
+                    document.getElementById('avatar-placeholder').classList.add('hidden');
                 }
 
-                if (data.ac !== undefined) document.getElementById('val-ac').value = data.ac;
-                if (data.speed !== undefined) document.getElementById('val-speed').value = data.speed;
-                if (data.inspiration !== undefined) document.getElementById('heroic-inspiration').checked = data.inspiration;
-                if (data.hpCurrent !== undefined) document.getElementById('hp-current').value = data.hpCurrent;
-                if (data.hpTemp !== undefined) document.getElementById('hp-temp').value = data.hpTemp;
-                if (data.hitDice !== undefined) document.getElementById('hit-dice').value = data.hitDice;
-                if (data.exhaustionLevel !== undefined) {
-                    document.getElementById('exhaustion-level').value = data.exhaustionLevel;
-                    updateExhaustion();
-                }
+                document.getElementById('val-speed').value = data.speed || "9m / 30ft";
+                document.getElementById('armor-name').value = data.armorName || "";
+                document.getElementById('armor-bonus').value = data.armorBonus || 12;
+                document.getElementById('shield-equipped').checked = !!data.shieldEquipped;
+                document.getElementById('shield-name').value = data.shieldName || "";
+                document.getElementById('shield-bonus').value = data.shieldBonus || 2;
+                document.getElementById('armor-extra-desc').value = data.armorExtraDesc || "";
+                document.getElementById('armor-extra-bonus').value = data.armorExtraBonus || 0;
+                document.getElementById('heroic-inspiration').checked = !!data.heroicInspiration;
 
-                if (data.dsSucc) {
-                    document.getElementById('ds-succ-1').checked = data.dsSucc[0];
-                    document.getElementById('ds-succ-2').checked = data.dsSucc[1];
-                    document.getElementById('ds-succ-3').checked = data.dsSucc[2];
-                }
-                if (data.dsFail) {
-                    document.getElementById('ds-fail-1').checked = data.dsFail[0];
-                    document.getElementById('ds-fail-2').checked = data.dsFail[1];
-                    document.getElementById('ds-fail-3').checked = data.dsFail[2];
+                document.getElementById('hp-current').value = data.hpCurrent || 12;
+                document.getElementById('hp-temp').value = data.hpTemp || 0;
+                document.getElementById('hit-dice').value = data.hitDice || "1d10";
+                document.getElementById('exhaustion-level').value = data.exhaustionLevel || 0;
+                updateExhaustion();
+
+                if (data.deathSaves) {
+                    document.getElementById('ds-succ-1').checked = !!data.deathSaves.s1;
+                    document.getElementById('ds-succ-2').checked = !!data.deathSaves.s2;
+                    document.getElementById('ds-succ-3').checked = !!data.deathSaves.s3;
+                    document.getElementById('ds-fail-1').checked = !!data.deathSaves.f1;
+                    document.getElementById('ds-fail-2').checked = !!data.deathSaves.f2;
+                    document.getElementById('ds-fail-3').checked = !!data.deathSaves.f3;
                 }
 
                 if (data.stats) {
-                    document.getElementById('stat-str').value = data.stats.str;
-                    document.getElementById('stat-dex').value = data.stats.dex;
-                    document.getElementById('stat-con').value = data.stats.con;
-                    document.getElementById('stat-int').value = data.stats.int;
-                    document.getElementById('stat-wis').value = data.stats.wis;
-                    document.getElementById('stat-cha').value = data.stats.cha;
+                    document.getElementById('stat-str').value = data.stats.str || 10;
+                    document.getElementById('stat-dex').value = data.stats.dex || 10;
+                    document.getElementById('stat-con').value = data.stats.con || 10;
+                    document.getElementById('stat-int').value = data.stats.int || 10;
+                    document.getElementById('stat-wis').value = data.stats.wis || 10;
+                    document.getElementById('stat-cha').value = data.stats.cha || 10;
                 }
 
-                if (data.featTough !== undefined) document.getElementById('feat-tough').checked = data.featTough;
-                if (data.traitDwarf !== undefined) document.getElementById('trait-dwarf').checked = data.traitDwarf;
+                document.getElementById('feat-tough').checked = !!data.featTough;
+                document.getElementById('trait-dwarf').checked = !!data.traitDwarf;
+
+                renderDynamicComponents();
 
                 if (data.savingThrowsProfs) {
-                    savingThrowsData.forEach((st, i) => {
-                        const el = document.getElementById(`st-prof-${st.key}`);
-                        if (el) el.checked = data.savingThrowsProfs[i];
+                    data.savingThrowsProfs.forEach(st => {
+                        const cb = document.getElementById(`st-prof-${st.key}`);
+                        if (cb) cb.checked = !!st.checked;
                     });
                 }
 
                 if (data.skillsProfs) {
-                    skillsData.forEach((_, i) => {
-                        const el = document.getElementById(`skill-prof-${i}`);
-                        if (el) el.value = data.skillsProfs[i];
+                    data.skillsProfs.forEach((val, idx) => {
+                        const sel = document.getElementById(`skill-prof-${idx}`);
+                        if (sel) sel.value = val;
                     });
-                }
-
-                if (data.coins) {
-                    document.getElementById('coin-cp').value = data.coins.cp;
-                    document.getElementById('coin-sp').value = data.coins.sp;
-                    document.getElementById('coin-ep').value = data.coins.ep;
-                    document.getElementById('coin-gp').value = data.coins.gp;
-                    document.getElementById('coin-pp').value = data.coins.pp;
-                }
-
-                if (data.equipmentNotes !== undefined) document.getElementById('char-equipment').value = data.equipmentNotes;
-                if (data.spellAbility !== undefined) document.getElementById('spell-ability').value = data.spellAbility;
-
-                if (data.spellSlots) {
-                    data.spellSlots.forEach((slot, i) => {
-                        const maxEl = document.getElementById(`slot-max-${i+1}`);
-                        const usedEl = document.getElementById(`slot-used-${i+1}`);
-                        if (maxEl) maxEl.value = slot.max;
-                        if (usedEl) usedEl.value = slot.used;
-                    });
-                }
-
-                if (data.proficiencies) {
-                    document.getElementById('prof-armor').value = data.proficiencies.armor;
-                    document.getElementById('prof-weapons').value = data.proficiencies.weapons;
-                    document.getElementById('prof-tools').value = data.proficiencies.tools;
-                    document.getElementById('prof-languages').value = data.proficiencies.languages;
-                }
-
-                if (data.bio) {
-                    document.getElementById('bio-age').value = data.bio.age;
-                    document.getElementById('bio-height').value = data.bio.height;
-                    document.getElementById('bio-weight').value = data.bio.weight;
-                    document.getElementById('bio-eyes').value = data.bio.eyes;
-                    document.getElementById('bio-skin').value = data.bio.skin;
-                    document.getElementById('bio-hair').value = data.bio.hair;
-                    document.getElementById('role-traits').value = data.bio.traits;
-                    document.getElementById('role-ideals').value = data.bio.ideals;
-                    document.getElementById('role-bonds').value = data.bio.bonds;
-                    document.getElementById('role-flaws').value = data.bio.flaws;
-                    document.getElementById('bio-allies').value = data.bio.allies;
-                    document.getElementById('bio-quests').value = data.bio.quests;
                 }
 
                 if (data.weaponsList) weaponsList = data.weaponsList;
@@ -1570,27 +1976,82 @@
                 if (data.speciesTraitsList) speciesTraitsList = data.speciesTraitsList;
                 if (data.classFeaturesList) classFeaturesList = data.classFeaturesList;
                 if (data.featsList) featsList = data.featsList;
-                if (data.characterAvatarData) {
-                    characterAvatarData = data.characterAvatarData;
-                    displayAvatar();
+
+                if (data.coins) {
+                    document.getElementById('coin-cp').value = data.coins.cp || 0;
+                    document.getElementById('coin-sp').value = data.coins.sp || 0;
+                    document.getElementById('coin-ep').value = data.coins.ep || 0;
+                    document.getElementById('coin-gp').value = data.coins.gp || 0;
+                    document.getElementById('coin-pp').value = data.coins.pp || 0;
                 }
+
+                document.getElementById('char-equipment').value = data.charEquipment || "";
+                document.getElementById('spellcaster-type').value = data.spellcasterType || "none";
+                document.getElementById('spell-ability').value = data.spellAbility || "cha";
+                document.getElementById('spell-extra-dc').value = data.spellExtraDc || 0;
+                document.getElementById('spell-extra-atk').value = data.spellExtraAtk || 0;
+
+                if (data.spellSlotsMax) {
+                    data.spellSlotsMax.forEach((val, i) => {
+                        const inp = document.getElementById(`slot-max-${i+1}`);
+                        if (inp) inp.value = val;
+                    });
+                }
+                if (data.spellSlotsUsed) {
+                    data.spellSlotsUsed.forEach((val, i) => {
+                        const inp = document.getElementById(`slot-used-${i+1}`);
+                        if (inp) inp.value = val;
+                    });
+                }
+
+                document.getElementById('prof-armor').value = data.profArmor || "";
+                document.getElementById('prof-weapons').value = data.profWeapons || "";
+                document.getElementById('prof-tools').value = data.profTools || "";
+                document.getElementById('prof-languages').value = data.profLanguages || "";
+
+                document.getElementById('bio-age').value = data.bioAge || "";
+                document.getElementById('bio-height').value = data.bioHeight || "";
+                document.getElementById('bio-weight').value = data.bioWeight || "";
+                document.getElementById('bio-eyes').value = data.bioEyes || "";
+                document.getElementById('bio-skin').value = data.bioSkin || "";
+                document.getElementById('bio-hair').value = data.bioHair || "";
+                document.getElementById('role-traits').value = data.roleTraits || "";
+                document.getElementById('role-ideals').value = data.roleIdeals || "";
+                document.getElementById('role-bonds').value = data.roleBonds || "";
+                document.getElementById('role-flaws').value = data.roleFlaws || "";
+                document.getElementById('bio-allies').value = data.bioAllies || "";
+                document.getElementById('bio-quests').value = data.bioQuests || "";
+
+                renderWeapons();
+                renderInventory();
+                renderSpells();
+                renderFeatureCards('species');
+                renderFeatureCards('class');
+                renderFeatureCards('feat');
+                renderMulticlass();
+                renderResources();
+                calculateStats();
             } catch (e) {
-                console.error("Erro ao carregar dados salvos:", e);
+                console.error("Erro ao carregar dados:", e);
+                renderDynamicComponents();
+                calculateStats();
             }
         }
 
         function exportData() {
             const raw = localStorage.getItem('dnd2024_porquin_sheet');
             if (!raw) {
-                showModal("Aviso", "Nenhum dado encontrado para exportar.", true);
+                showModal("Exportação", "Nenhum dado encontrado para exportar.", true);
                 return;
             }
             const blob = new Blob([raw], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ficha_dnd2024_porquin.json';
+            a.download = `ficha_dnd2024_${(document.getElementById('char-name').value || 'porquin').toLowerCase().replace(/\s+/g, '_')}.json`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
@@ -1602,15 +2063,8 @@
                 try {
                     localStorage.setItem('dnd2024_porquin_sheet', e.target.result);
                     loadData();
-                    renderDynamicComponents();
-                    renderMulticlass();
-                    renderWeapons();
-                    renderInventoryItems();
-                    renderFeatureCards();
-                    renderSpellsTable();
-                    calculateStats();
-                    showModal("Sucesso", "Ficha importada com sucesso!");
-                } catch (err) {
+                    showModal("Importação Concluída", "Ficha importada com sucesso!");
+                } catch(err) {
                     showModal("Erro", "Arquivo JSON inválido.", true);
                 }
             };
@@ -1618,14 +2072,7 @@
         }
 
         window.onload = function() {
-            renderDynamicComponents();
-            renderMulticlass();
             loadData();
-            renderWeapons();
-            renderInventoryItems();
-            renderFeatureCards();
-            renderSpellsTable();
-            calculateStats();
         };
     </script>
 </body>
