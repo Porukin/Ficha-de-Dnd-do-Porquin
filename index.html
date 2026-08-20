@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha do Porquin - D&D 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dnd: {
+                            red: '#8b0000',
+                            darkred: '#5c0000',
+                            gold: '#d4af37',
+                            darkgold: '#aa8c2c',
+                            darkbg: '#121214',
+                            cardbg: '#1a1a1e',
+                            border: '#2a2a30'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #121214; }
+        ::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-dnd-darkbg text-gray-200 min-h-screen pb-12 selection:bg-dnd-gold selection:text-black">
+
+    <header class="bg-dnd-cardbg border-b border-dnd-border sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-dnd-red to-dnd-darkred flex items-center justify-center border border-dnd-gold/40 shadow-inner">
+                    <i class="fa-solid fa-dragon text-dnd-gold text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="cinzel font-bold text-lg text-dnd-gold tracking-wider">D&D 2024</h1>
+                    <p class="text-xs text-gray-400">Ficha do Porquin</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation (Includes Dice Roller Tab) -->
+            <nav class="flex gap-1 bg-black/40 p-1.5 rounded-xl border border-dnd-border overflow-x-auto max-w-full">
+                <button onclick="switchTab('core')" id="btn-core" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all bg-dnd-gold text-black shadow"><i class="fa-solid fa-user mr-1.5"></i> Principal</button>
+                <button onclick="switchTab('combat')" id="btn-combat" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-shield-halved mr-1.5"></i> Inventário</button>
+                <button onclick="switchTab('spells')" id="btn-spells" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-wand-sparkles mr-1.5"></i> Magias</button>
+                <button onclick="switchTab('features')" id="btn-features" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-book-skull mr-1.5"></i> Talentos & Traits</button>
+                <button onclick="switchTab('bio')" id="btn-bio" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-scroll mr-1.5"></i> Biografia & Lore</button>
+                <button onclick="switchTab('dice')" id="btn-dice" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all text-gray-400 hover:text-white"><i class="fa-solid fa-dice-d20 mr-1.5"></i> Rolador de Dados</button>
+            </nav>
+
+            <div class="flex items-center gap-2">
+                <button onclick="saveData(true)" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow" title="Salvar dados da ficha manualmente">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar
+                </button>
+                <button onclick="triggerShortRest()" class="bg-zinc-800 hover:bg-zinc-700 text-dnd-gold border border-dnd-gold/30 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow" title="Recuperar dados de vida / recursos">
+                    <i class="fa-solid fa-bed"></i> Descanso Curto
+                </button>
+                <button onclick="triggerLongRest()" class="bg-zinc-800 hover:bg-zinc-700 text-dnd-gold border border-dnd-gold/30 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow" title="Recuperar HP total, magias e recursos">
+                    <i class="fa-solid fa-campground"></i> Descanso Longo
+                </button>
+                <button onclick="exportData()" class="bg-dnd-darkred hover:bg-red-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow" title="Exportar dados em JSON">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+                <label class="bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow" title="Importar JSON">
+                    <i class="fa-solid fa-upload"></i>
+                    <input type="file" id="importFile" onchange="importData(event)" class="hidden" accept=".json">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div id="msgModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-dnd-cardbg border border-dnd-gold/50 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-fade-in">
+            <div class="flex items-center gap-3 mb-4 text-dnd-gold">
+                <i class="fa-solid fa-circle-exclamation text-2xl" id="modalIcon"></i>
+                <h3 id="modalTitle" class="cinzel font-bold text-lg">Aviso do Sistema</h3>
+            </div>
+            <p id="modalMessage" class="text-gray-300 text-sm mb-6 leading-relaxed"></p>
+            <div class="flex justify-end">
+                <button onclick="closeModal()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- TAB 1: CORE / PRINCIPAL -->
+        <div id="tab-core" class="tab-content space-y-6">
+            <!-- Character Header Info Card -->
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                    <div class="md:col-span-2 lg:col-span-3">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Nome do Personagem</label>
+                        <input type="text" id="char-name" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Valeros, o Paladino">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Pronomes</label>
+                        <input type="text" id="char-pronouns" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Ele/Dele">
+                    </div>
+                    
+                    <div class="md:col-span-2 lg:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Classe Principal</label>
+                        <select id="char-class" onchange="syncSingleClassToMulticlass(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition">
+                            <option value="Barbarian">Bárbaro (Barbarian) [d12]</option>
+                            <option value="Bard">Bardo (Bard) [d8]</option>
+                            <option value="Cleric">Clérigo (Cleric) [d8]</option>
+                            <option value="Druid">Druida (Druid) [d8]</option>
+                            <option value="Fighter" selected>Guerreiro (Fighter) [d10]</option>
+                            <option value="Monk">Monge (Monk) [d8]</option>
+                            <option value="Paladin">Paladino (Paladin) [d10]</option>
+                            <option value="Ranger">Patrulheiro (Ranger) [d10]</option>
+                            <option value="Rogue">Ladino (Rogue) [d8]</option>
+                            <option value="Sorcerer">Feiticeiro (Sorcerer) [d6]</option>
+                            <option value="Warlock">Bruxo (Warlock) [d8]</option>
+                            <option value="Wizard">Mago (Wizard) [d6]</option>
+                            <option value="Artificer">Artífice (Artificer) [d8]</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Espécie (Raça)</label>
+                        <input type="text" id="char-species" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Elfo / Anão">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Nível Total</label>
+                        <input type="number" id="char-level-num" value="1" min="1" max="20" oninput="calculateStats(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-center font-bold focus:outline-none focus:border-dnd-gold transition">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Antecedente (Background 2024)</label>
+                        <input type="text" id="char-background" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Criminoso / Sábio">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Tendência</label>
+                        <input type="text" id="char-alignment" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Ex: Neutro e Bom">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Nome do Jogador</label>
+                        <input type="text" id="char-player" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition" placeholder="Seu Nome">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Pontos de Experiência (XP)</label>
+                        <input type="number" id="char-xp" value="0" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-dnd-gold transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiclass Support -->
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-layer-group mr-2"></i>Multiclasse (Ainda em Teste)</h2>
+                    <button onclick="addMulticlassRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Classe</button>
+                </div>
+                <p class="text-xs text-gray-400 mb-4">Adicione suas classes secundárias. A ficha calculará automaticamente o PV máximo por nível.</p>
+                <div id="multiclass-container" class="space-y-3"></div>
+            </div>
+
+            <!-- Character Avatar Section -->
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-image mr-2"></i>Personagem</h2>
+                <div class="flex flex-wrap items-center gap-6">
+                    <div class="w-32 h-32 rounded-2xl bg-black/50 border-2 border-dnd-gold/40 overflow-hidden flex items-center justify-center relative shadow-inner">
+                        <img id="avatar-preview" src="" alt="Retrato" class="w-full h-full object-cover hidden">
+                        <div id="avatar-placeholder" class="text-center p-2 text-gray-500">
+                            <i class="fa-solid fa-user-ninja text-3xl mb-1 text-dnd-gold/60"></i>
+                            <span class="text-[10px] block uppercase">Sem Imagem</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 space-y-3">
+                        <p class="text-xs text-gray-300">Faça o upload de uma imagem do seu Personagem.</p>
+                        <div class="flex items-center gap-3">
+                            <label class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer shadow flex items-center gap-1.5">
+                                <i class="fa-solid fa-upload"></i> Carregar Imagem
+                                <input type="file" id="avatar-input" accept="image/*" onchange="uploadAvatar(event)" class="hidden">
+                            </label>
+                            <button onclick="removeAvatar()" class="bg-zinc-800 hover:bg-zinc-700 text-red-400 border border-red-900/40 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defense, Movement & Health -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl space-y-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-shield-halved mr-2"></i>Defesa e Movimento</h2>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 block mb-1">Classe de Armadura</span>
+                            <input type="number" id="val-ac" value="15" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-dnd-gold py-1">
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 block mb-1">Iniciativa</span>
+                            <span id="val-init" class="text-xl font-bold text-dnd-gold block py-1">+0</span>
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 block mb-1">Deslocamento</span>
+                            <input type="text" id="val-speed" value="9m / 30ft" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xs font-bold text-white py-1">
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="heroic-inspiration" onchange="saveData()" class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
+                            <span class="text-xs font-semibold text-dnd-gold uppercase"><i class="fa-solid fa-star mr-1.5"></i> Inspiração Heroica (2024)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hit Points & Health -->
+                <div class="md:col-span-2 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl space-y-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Saúde, PV & Condições</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Máximos (Auto)</span>
+                            <input type="number" id="hp-max" value="12" readonly class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-dnd-gold py-1 cursor-not-allowed">
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Atuais</span>
+                            <input type="number" id="hp-current" value="12" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-green-400 py-1">
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Temporários</span>
+                            <input type="number" id="hp-temp" value="0" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-cyan-400 py-1">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Dados de Vida (Hit Dice)</span>
+                            <input type="text" id="hit-dice" value="1d10" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-sm font-bold text-white py-1">
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block">Exaustão (2024 Rules)</span>
+                                <span id="exhaustion-val" class="text-xs font-bold text-red-400">Nível 0 (0 em D20)</span>
+                            </div>
+                            <select id="exhaustion-level" onchange="updateExhaustion(); saveData()" class="bg-black/60 border border-dnd-border rounded-lg text-xs text-white p-1.5 focus:outline-none">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6 (Morte)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Death Saves -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-gray-300">Sucessos em Morte</span>
+                            <div class="flex gap-2">
+                                <input type="checkbox" id="ds-succ-1" onchange="saveData()" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                                <input type="checkbox" id="ds-succ-2" onchange="saveData()" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                                <input type="checkbox" id="ds-succ-3" onchange="saveData()" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-gray-300">Falhas em Morte</span>
+                            <div class="flex gap-2">
+                                <input type="checkbox" id="ds-fail-1" onchange="saveData()" class="w-4 h-4 accent-red-500 rounded cursor-pointer">
+                                <input type="checkbox" id="ds-fail-2" onchange="saveData()" class="w-4 h-4 accent-red-500 rounded cursor-pointer">
+                                <input type="checkbox" id="ds-fail-3" onchange="saveData()" class="w-4 h-4 accent-red-500 rounded cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Ability Scores Column -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dumbbell mr-2"></i>Atributos Base</h2>
+                            <div class="bg-black/40 border border-dnd-border px-3 py-1 rounded-xl">
+                                <span class="text-[10px] uppercase font-bold text-gray-400">Proficiência:</span>
+                                <span id="val-prof" class="text-sm font-bold text-dnd-gold ml-1">+2</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="ability-scores-grid">
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Força</span>
+                                <input type="number" id="stat-str" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-str" class="text-xs font-bold text-dnd-gold block">+3</span>
+                            </div>
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Destreza</span>
+                                <input type="number" id="stat-dex" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-dex" class="text-xs font-bold text-dnd-gold block">+2</span>
+                            </div>
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Constituição</span>
+                                <input type="number" id="stat-con" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-con" class="text-xs font-bold text-dnd-gold block">+2</span>
+                            </div>
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Inteligência</span>
+                                <input type="number" id="stat-int" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-int" class="text-xs font-bold text-dnd-gold block">+0</span>
+                            </div>
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Sabedoria</span>
+                                <input type="number" id="stat-wis" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-wis" class="text-xs font-bold text-dnd-gold block">+1</span>
+                            </div>
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-3 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Carisma</span>
+                                <input type="number" id="stat-cha" value="10" min="1" max="30" oninput="calculateStats(); saveData()" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-white py-1 mb-1 focus:border-dnd-gold focus:outline-none">
+                                <span id="mod-cha" class="text-xs font-bold text-dnd-gold block">+0</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-dnd-border space-y-2">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block">Bônus Especiais de HP (2024)</span>
+                            <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-3 py-2">
+                                <label for="feat-tough" class="text-xs text-gray-300 cursor-pointer">Talento Resistente (Tough: +2 HP/nível)</label>
+                                <input type="checkbox" id="feat-tough" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-3 py-2">
+                                <label for="trait-dwarf" class="text-xs text-gray-300 cursor-pointer">Espécie Anão (Dwarven Toughness: +1 HP/nível)</label>
+                                <input type="checkbox" id="trait-dwarf" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saving Throws Column -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                        <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-shield-heart mr-2"></i>Testes de Resistência</h2>
+                        <div id="saving-throws-container" class="space-y-2.5"></div>
+
+                        <div class="mt-6 pt-4 border-t border-dnd-border">
+                            <div class="bg-black/40 border border-dnd-border rounded-xl p-4 text-center">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Percepção Passiva (Wisdom)</span>
+                                <span id="passive-perception" class="text-3xl font-bold text-dnd-gold">10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Perícias -->
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-list-check mr-2"></i>Perícias (Clique no nome para rolar 1d20)</h2>
+                </div>
+                <div id="skills-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: INVENTÁRIO -->
+        <div id="tab-combat" class="tab-content hidden space-y-6">
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-wand-sparkles mr-2"></i>Ataques, Armas & Maestrias (Weapon Masteries 2024)</h2>
+                    <button onclick="addWeaponRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Arma</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-black/60 text-[10px] uppercase text-gray-400 border-b border-dnd-border">
+                            <tr>
+                                <th class="p-3">Nome da Arma</th>
+                                <th class="p-3">Bônus Atq</th>
+                                <th class="p-3">Dano / Tipo</th>
+                                <th class="p-3">Maestria</th>
+                                <th class="p-3 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weapons-table-body" class="divide-y divide-dnd-border"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Coins -->
+                <div class="lg:col-span-4 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-coins mr-2"></i>Moedas / Dinheiro</h2>
+                    <div class="grid grid-cols-5 gap-2 text-center mb-4">
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-orange-400 block mb-1">CP</span>
+                            <input type="number" id="coin-cp" value="0" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl text-center py-1.5 text-white font-bold text-sm focus:border-dnd-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-gray-300 block mb-1">SP</span>
+                            <input type="number" id="coin-sp" value="0" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl text-center py-1.5 text-white font-bold text-sm focus:border-dnd-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-cyan-300 block mb-1">EP</span>
+                            <input type="number" id="coin-ep" value="0" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl text-center py-1.5 text-white font-bold text-sm focus:border-dnd-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-dnd-gold block mb-1">GP</span>
+                            <input type="number" id="coin-gp" value="15" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl text-center py-1.5 text-white font-bold text-sm focus:border-dnd-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-purple-300 block mb-1">PP</span>
+                            <input type="number" id="coin-pp" value="0" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl text-center py-1.5 text-white font-bold text-sm focus:border-dnd-gold focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="bg-black/30 border border-dnd-border rounded-xl p-3 text-xs text-gray-400">
+                        <p class="font-semibold text-gray-300 mb-1">Capacidade de Carga & Salto:</p>
+                        <p>Carga Máxima: <span id="carrying-cap" class="text-dnd-gold font-bold">150 lbs</span> (Força × 15)</p>
+                        <p>Peso Atual Total: <span id="total-weight-calc" class="text-cyan-400 font-bold">0 lbs</span></p>
+                        <p class="mt-1">Salto em Distância: <span id="long-jump" class="text-dnd-gold font-bold">10 pés</span></p>
+                    </div>
+                </div>
+
+                <!-- Equipment & Inventory -->
+                <div class="lg:col-span-8 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-backpack mr-2"></i>Mochila e Itens Equipados</h2>
+                            <button onclick="addInventoryItem()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Item</button>
+                        </div>
+                        <div id="inventory-items-container" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-dnd-border">
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Notas Gerais de Equipamentos / Mochila</label>
+                        <textarea id="char-equipment" oninput="saveData()" rows="2" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-xs text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed" placeholder="Outras anotações de suprimentos, cordas, tochas..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MAGIAS -->
+        <div id="tab-spells" class="tab-content hidden space-y-6">
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Estatísticas de Conjuração</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Habilidade de Conjuração</label>
+                        <select id="spell-ability" onchange="calculateStats(); saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-white text-sm focus:border-dnd-gold focus:outline-none">
+                            <option value="int">Inteligência</option>
+                            <option value="wis">Sabedoria</option>
+                            <option value="cha" selected>Carisma</option>
+                            <option value="none">Nenhuma / Não Conjurador</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">CD do Teste de Resistência</label>
+                        <div id="spell-save-dc" class="bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-dnd-gold font-bold text-lg text-center">8</div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Bônus de Ataque Mágico</label>
+                        <div id="spell-atk-bonus" class="bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-dnd-gold font-bold text-lg text-center">+2</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-circle-nodes mr-2"></i>Espaços de Magia (Spell Slots 1º - 9º)</h2>
+                <div class="grid grid-cols-3 sm:grid-cols-9 gap-3 text-center" id="spell-slots-grid"></div>
+            </div>
+
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-book-open mr-2"></i>Truques e Magias Preparadas</h2>
+                    <button onclick="addSpellRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Magia</button>
+                </div>
+                <div class="space-y-3" id="spells-list-container"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: TALENTOS & TRAITS -->
+        <div id="tab-features" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dna mr-2"></i>Traços de Espécie</h2>
+                        <button onclick="addFeatureCard('species')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Traço</button>
+                    </div>
+                    <div id="species-traits-container" class="space-y-3 flex-grow"></div>
+                </div>
+
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-book-skull mr-2"></i>Características de Classe</h2>
+                        <button onclick="addFeatureCard('class')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Recurso</button>
+                    </div>
+                    <div id="class-features-container" class="space-y-3 flex-grow"></div>
+                </div>
+            </div>
+
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-medal mr-2"></i>Talentos e Featos de Origem (2024)</h2>
+                    <button onclick="addFeatureCard('feat')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Talento</button>
+                </div>
+                <div id="feats-container" class="space-y-3 flex-grow"></div>
+            </div>
+
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-language mr-2"></i>Proficiências e Idiomas</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Armaduras</label>
+                        <input type="text" id="prof-armor" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none" placeholder="Ex: Leves, Médias, Escudos">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Armas</label>
+                        <input type="text" id="prof-weapons" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none" placeholder="Ex: Simples, Marciais">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Ferramentas & Instrumentos</label>
+                        <input type="text" id="prof-tools" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none" placeholder="Ex: Ferramentas de Ladrão">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Idiomas</label>
+                        <input type="text" id="prof-languages" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none" placeholder="Ex: Comum, Élfico">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: BIOGRAFIA & LORE -->
+        <div id="tab-bio" class="tab-content hidden space-y-6">
+            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
+                <h2 class="cinzel font-bold text-dnd-gold text-base mb-4"><i class="fa-solid fa-user-tie mr-2"></i>Aparência do Personagem</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Idade</label>
+                        <input type="text" id="bio-age" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Altura</label>
+                        <input type="text" id="bio-height" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Peso</label>
+                        <input type="text" id="bio-weight" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Olhos</label>
+                        <input type="text" id="bio-eyes" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Pele</label>
+                        <input type="text" id="bio-skin" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Cabelo</label>
+                        <input type="text" id="bio-hair" oninput="saveData()" class="w-full bg-black/50 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:border-dnd-gold focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2">Traços de Personalidade</h2>
+                    <textarea id="role-traits" oninput="saveData()" rows="3" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="Como você age ou fala..."></textarea>
+                </div>
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2">Ideais</h2>
+                    <textarea id="role-ideals" oninput="saveData()" rows="3" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="O que guia seus princípios..."></textarea>
+                </div>
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2">Vínculos (Bonds)</h2>
+                    <textarea id="role-bonds" oninput="saveData()" rows="3" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="Pessoas, locais ou itens importantes..."></textarea>
+                </div>
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2">Defeitos (Flaws)</h2>
+                    <textarea id="role-flaws" oninput="saveData()" rows="3" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="Fraquezas ou vícios..."></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-users mr-2"></i>Aliados e Organizações</h2>
+                    <textarea id="bio-allies" oninput="saveData()" rows="4" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="Facções ou aliados..."></textarea>
+                </div>
+                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                    <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-map-location-dot mr-2"></i>Missões e Anotações (Quests)</h2>
+                    <textarea id="bio-quests" oninput="saveData()" rows="4" class="w-full bg-black/50 border border-dnd-border rounded-xl p-3 text-sm text-gray-200 focus:border-dnd-gold focus:outline-none leading-relaxed flex-grow" placeholder="Objetivos atuais da campanha..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: ROLADOR DE DADOS RÁPIDO -->
+        <div id="tab-dice" class="tab-content hidden space-y-6">
+            <div class="bg-dnd-cardbg border border-dnd-gold/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="cinzel font-bold text-dnd-gold text-xl flex items-center gap-2">
+                            <i class="fa-solid fa-dice-d20 text-2xl"></i> Rolador de Dados Rápido Avançado
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">Digite qualquer combinação de dados e somas no campo abaixo (ex: <code class="text-dnd-gold bg-black/60 px-1.5 py-0.5 rounded">2d6+1d8+3</code> ou <code class="text-dnd-gold bg-black/60 px-1.5 py-0.5 rounded">1d20+5</code>).</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-black/50 p-2 rounded-xl border border-dnd-border">
+                        <label class="text-[10px] uppercase font-bold text-gray-400 px-2">Modificador Geral:</label>
+                        <input type="number" id="dice-custom-mod" value="0" class="w-16 bg-black/60 border border-dnd-border rounded-lg text-center text-xs font-bold text-dnd-gold py-1">
+                    </div>
+                </div>
+
+                <!-- Custom Expression Box -->
+                <div class="bg-black/50 border border-dnd-border rounded-2xl p-4 mb-6 space-y-3">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-dnd-gold"><i class="fa-solid fa-keyboard mr-1.5"></i> Expressão de Dados Personalizada</label>
+                    <div class="flex flex-wrap sm:flex-nowrap gap-3">
+                        <input type="text" id="custom-dice-expr" placeholder="Ex: 2d6+1d8+3" class="flex-1 bg-black/70 border border-dnd-border rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:border-dnd-gold focus:outline-none">
+                        <button onclick="rollCustomDiceExpression()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-dice"></i> Rolar Expressão
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dice Buttons Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 mb-6">
+                    <button onclick="rollDice(4)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
+                        <span>1d4 (D4)</span>
+                    </button>
+                    <button onclick="rollDice(6)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice-six text-lg group-hover:scale-110 transition"></i>
+                        <span>1d6 (D6)</span>
+                    </button>
+                    <button onclick="rollDice(8)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
+                        <span>1d8 (D8)</span>
+                    </button>
+                    <button onclick="rollDice(10)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
+                        <span>1d10 (D10)</span>
+                    </button>
+                    <button onclick="rollDice(12)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
+                        <span>1d12 (D12)</span>
+                    </button>
+                    <button onclick="rollDice(20)" class="bg-gradient-to-br from-dnd-red to-dnd-darkred hover:bg-red-800 text-white border border-dnd-gold/50 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice-d20 text-lg group-hover:scale-110 transition text-dnd-gold"></i>
+                        <span>1d20 (D20)</span>
+                    </button>
+                    <button onclick="rollDice(100)" class="bg-gradient-to-br from-zinc-800 to-zinc-900 hover:from-dnd-gold hover:to-dnd-darkgold hover:text-black text-dnd-gold border border-dnd-gold/30 rounded-xl py-3 px-3 text-xs font-bold transition shadow flex flex-col items-center gap-1 group">
+                        <i class="fa-solid fa-dice text-lg group-hover:scale-110 transition"></i>
+                        <span>1d100 (%)</span>
+                    </button>
+                </div>
+
+                <!-- Dice Result Display & History -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-dnd-border">
+                    <div class="bg-black/60 border border-dnd-border rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 mb-1">Último Resultado</span>
+                        <div id="dice-last-result" class="text-4xl font-bold text-dnd-gold">--</div>
+                        <div id="dice-last-breakdown" class="text-xs text-gray-400 mt-1">Nenhuma rolagem ainda</div>
+                    </div>
+                    <div class="md:col-span-2 bg-black/60 border border-dnd-border rounded-xl p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] uppercase font-bold text-gray-400"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Histórico de Rolagens</span>
+                            <button onclick="clearDiceHistory()" class="text-xs text-red-400 hover:text-red-300 underline">Limpar Histórico</button>
+                        </div>
+                        <div id="dice-history-list" class="space-y-1.5 max-h-40 overflow-y-auto text-xs text-gray-300 pr-1">
+                            <span class="text-gray-500 italic">As rolagens aparecerão aqui...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const classHitDice = {
+            "Barbarian": "1d12", "Bard": "1d8", "Cleric": "1d8", "Druid": "1d8",
+            "Fighter": "1d10", "Monk": "1d8", "Paladin": "1d10", "Ranger": "1d10",
+            "Rogue": "1d8", "Sorcerer": "1d6", "Warlock": "1d8", "Wizard": "1d6", "Artificer": "1d8"
+        };
+
+        const classHitDieValues = {
+            "Barbarian": 12, "Bard": 8, "Cleric": 8, "Druid": 8,
+            "Fighter": 10, "Monk": 8, "Paladin": 10, "Ranger": 10,
+            "Rogue": 8, "Sorcerer": 6, "Warlock": 8, "Wizard": 6, "Artificer": 8
+        };
+
+        const skillsData = [
+            { name: "Acrobacia", stat: "dex" },
+            { name: "Arcanismo", stat: "int" },
+            { name: "Atletismo", stat: "str" },
+            { name: "Atuação", stat: "cha" },
+            { name: "Enganação", stat: "cha" },
+            { name: "Furtividade", stat: "dex" },
+            { name: "História", stat: "int" },
+            { name: "Intimidação", stat: "cha" },
+            { name: "Intuição", stat: "wis" },
+            { name: "Investigação", stat: "int" },
+            { name: "Lidar com Animais", stat: "wis" },
+            { name: "Medicina", stat: "wis" },
+            { name: "Natureza", stat: "int" },
+            { name: "Percepção", stat: "wis" },
+            { name: "Persuasão", stat: "cha" },
+            { name: "Prestidigitação", stat: "dex" },
+            { name: "Religião", stat: "int" },
+            { name: "Sobrevivência", stat: "wis" }
+        ];
+
+        const savingThrowsData = [
+            { key: "str", label: "Força" },
+            { key: "dex", label: "Destreza" },
+            { key: "con", label: "Constituição" },
+            { key: "int", label: "Inteligência" },
+            { key: "wis", label: "Sabedoria" },
+            { key: "cha", label: "Carisma" }
+        ];
+
+        let multiclassList = [
+            { className: "Fighter", level: 1 }
+        ];
+
+        function showModal(title, message, isError = false) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const iconEl = document.getElementById('modalIcon');
+            iconEl.className = isError 
+                ? "fa-solid fa-circle-exclamation text-2xl text-red-500" 
+                : "fa-solid fa-circle-check text-2xl text-dnd-gold";
+            document.getElementById('msgModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('msgModal').classList.add('hidden');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-dnd-gold', 'text-black', 'shadow');
+                btn.classList.add('text-gray-400');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-dnd-gold', 'text-black', 'shadow');
+                activeBtn.classList.remove('text-gray-400');
+            }
+        }
+
+        function calculateModifier(score) {
+            return Math.floor((parseInt(score) - 10) / 2);
+        }
+
+        function calculateProficiency(level) {
+            let lvl = parseInt(level) || 1;
+            return Math.floor((lvl - 1) / 4) + 2;
+        }
+
+        function syncSingleClassToMulticlass() {
+            const primaryClass = document.getElementById('char-class').value;
+            if (multiclassList.length > 0) {
+                multiclassList[0].className = primaryClass;
+            } else {
+                multiclassList.push({ className: primaryClass, level: 1 });
+            }
+            renderMulticlass();
+            calculateStats();
+        }
+
+        function renderMulticlass() {
+            const container = document.getElementById('multiclass-container');
+            if (!container) return;
+            container.innerHTML = multiclassList.map((mc, idx) => `
+                <div class="flex items-center gap-3 bg-black/40 border border-dnd-border rounded-xl p-3">
+                    <div class="flex-1">
+                        <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Classe ${idx + 1}</label>
+                        <select onchange="multiclassList[${idx}].className = this.value; if(idx===0) document.getElementById('char-class').value = this.value; calculateStats(); saveData();" class="w-full bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-white text-xs">
+                            <option value="Barbarian" ${mc.className === 'Barbarian' ? 'selected' : ''}>Bárbaro [d12]</option>
+                            <option value="Bard" ${mc.className === 'Bard' ? 'selected' : ''}>Bardo [d8]</option>
+                            <option value="Cleric" ${mc.className === 'Cleric' ? 'selected' : ''}>Clérigo [d8]</option>
+                            <option value="Druid" ${mc.className === 'Druid' ? 'selected' : ''}>Druida [d8]</option>
+                            <option value="Fighter" ${mc.className === 'Fighter' ? 'selected' : ''}>Guerreiro [d10]</option>
+                            <option value="Monk" ${mc.className === 'Monk' ? 'selected' : ''}>Monge [d8]</option>
+                            <option value="Paladin" ${mc.className === 'Paladin' ? 'selected' : ''}>Paladino [d10]</option>
+                            <option value="Ranger" ${mc.className === 'Ranger' ? 'selected' : ''}>Patrulheiro [d10]</option>
+                            <option value="Rogue" ${mc.className === 'Rogue' ? 'selected' : ''}>Ladino [d8]</option>
+                            <option value="Sorcerer" ${mc.className === 'Sorcerer' ? 'selected' : ''}>Feiticeiro [d6]</option>
+                            <option value="Warlock" ${mc.className === 'Warlock' ? 'selected' : ''}>Bruxo [d8]</option>
+                            <option value="Wizard" ${mc.className === 'Wizard' ? 'selected' : ''}>Mago [d6]</option>
+                            <option value="Artificer" ${mc.className === 'Artificer' ? 'selected' : ''}>Artífice [d8]</option>
+                        </select>
+                    </div>
+                    <div class="w-28">
+                        <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Nível na Classe</label>
+                        <input type="number" min="1" max="20" value="${mc.level}" oninput="multiclassList[${idx}].level = parseInt(this.value) || 1; updateSumLevels(); calculateStats(); saveData();" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center px-2 py-1.5 text-white text-xs font-bold">
+                    </div>
+                    <div class="pt-4">
+                        ${idx > 0 ? `<button onclick="removeMulticlass(${idx})" class="text-red-400 hover:text-red-300 p-2"><i class="fa-solid fa-trash"></i></button>` : `<span class="text-[10px] text-gray-500 uppercase px-2">Principal</span>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSumLevels() {
+            let totalLvl = 0;
+            multiclassList.forEach(mc => { totalLvl += mc.level; });
+            document.getElementById('char-level-num').value = totalLvl;
+        }
+
+        function addMulticlassRow() {
+            multiclassList.push({ className: "Fighter", level: 1 });
+            updateSumLevels();
+            renderMulticlass();
+            calculateStats();
+            saveData();
+        }
+
+        function removeMulticlass(idx) {
+            multiclassList.splice(idx, 1);
+            updateSumLevels();
+            renderMulticlass();
+            calculateStats();
+            saveData();
+        }
+
+        function calculateStats() {
+            const levelNumInput = parseInt(document.getElementById('char-level-num').value) || 1;
+            const prof = calculateProficiency(levelNumInput);
+            document.getElementById('val-prof').innerText = '+' + prof;
+
+            const stats = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+            const mods = {};
+            stats.forEach(s => {
+                const val = parseInt(document.getElementById('stat-' + s).value) || 10;
+                const mod = calculateModifier(val);
+                mods[s] = mod;
+                document.getElementById('mod-' + s).innerText = (mod >= 0 ? '+' : '') + mod;
+            });
+
+            document.getElementById('val-init').innerText = (mods.dex >= 0 ? '+' : '') + mods.dex;
+
+            const strVal = parseInt(document.getElementById('stat-str').value) || 10;
+            document.getElementById('carrying-cap').innerText = (strVal * 15) + ' lbs';
+            document.getElementById('long-jump').innerText = strVal + ' pés';
+
+            let hitDiceParts = [];
+            let totalCalculatedHp = 0;
+            const conMod = mods.con;
+            let globalLevelCount = 0;
+
+            multiclassList.forEach((mc) => {
+                const dieMax = classHitDieValues[mc.className] || 8;
+                const dieName = classHitDice[mc.className] || "1d8";
+                hitDiceParts.push(`${mc.level}${dieName.substring(1)}`);
+
+                for (let l = 1; l <= mc.level; l++) {
+                    globalLevelCount++;
+                    if (globalLevelCount === 1) {
+                        totalCalculatedHp += dieMax + conMod;
+                    } else {
+                        const avgDie = Math.floor(dieMax / 2) + 1;
+                        totalCalculatedHp += Math.max(1, avgDie + conMod);
+                    }
+                }
+            });
+
+            document.getElementById('hit-dice').value = hitDiceParts.join(' + ');
+
+            const hasTough = document.getElementById('feat-tough').checked;
+            const hasDwarf = document.getElementById('trait-dwarf').checked;
+            if (hasTough) totalCalculatedHp += (levelNumInput * 2);
+            if (hasDwarf) totalCalculatedHp += levelNumInput;
+
+            document.getElementById('hp-max').value = Math.max(1, totalCalculatedHp);
+
+            savingThrowsData.forEach(st => {
+                const isProf = document.getElementById(`st-prof-${st.key}`).checked;
+                const total = mods[st.key] + (isProf ? prof : 0);
+                document.getElementById(`st-val-${st.key}`).innerText = (total >= 0 ? '+' : '') + total;
+            });
+
+            skillsData.forEach((skill, index) => {
+                const profState = parseInt(document.getElementById(`skill-prof-${index}`).value);
+                const mod = mods[skill.stat];
+                let total = mod;
+                if (profState === 1) total += prof;
+                if (profState === 2) total += (prof * 2);
+                document.getElementById(`skill-val-${index}`).innerText = (total >= 0 ? '+' : '') + total;
+            });
+
+            const wisMod = mods.wis;
+            const percProf = parseInt(document.getElementById('skill-prof-13').value);
+            let percTotal = 10 + wisMod;
+            if (percProf === 1) percTotal += prof;
+            if (percProf === 2) percTotal += (prof * 2);
+            document.getElementById('passive-perception').innerText = percTotal;
+
+            const spellAbility = document.getElementById('spell-ability').value;
+            if (spellAbility !== 'none') {
+                const abilMod = mods[spellAbility];
+                const saveDc = 8 + prof + abilMod;
+                const atkBonus = prof + abilMod;
+                document.getElementById('spell-save-dc').innerText = saveDc;
+                document.getElementById('spell-atk-bonus').innerText = (atkBonus >= 0 ? '+' : '') + atkBonus;
+            } else {
+                document.getElementById('spell-save-dc').innerText = '-';
+                document.getElementById('spell-atk-bonus').innerText = '-';
+            }
+        }
+
+        function rollSkillCheck(skillIndex) {
+            const skill = skillsData[skillIndex];
+            const valText = document.getElementById(`skill-val-${skillIndex}`).innerText;
+            const bonus = parseInt(valText) || 0;
+            const d20 = Math.floor(Math.random() * 20) + 1;
+            const total = d20 + bonus;
+
+            let critStr = "";
+            if (d20 === 20) critStr = " (CRÍTICO 20! 🌟)";
+            else if (d20 === 1) critStr = " (FALHA CRÍTICA 1! 💀)";
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `Teste de Perícia [<strong>${skill.name}</strong>]: 1d20(${d20}) ${bonus >= 0 ? '+' + bonus : bonus} = <strong>${total}</strong>${critStr}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            showModal(`Teste de ${skill.name}`, `Rolou 1d20 (${d20}) + bônus (${bonus}) = ${total}${critStr}`);
+        }
+
+        function updateExhaustion() {
+            const level = document.getElementById('exhaustion-level').value;
+            document.getElementById('exhaustion-val').innerText = `Nível ${level} (${level * -2} em D20)`;
+        }
+
+        function renderDynamicComponents() {
+            const stContainer = document.getElementById('saving-throws-container');
+            stContainer.innerHTML = savingThrowsData.map(st => `
+                <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-3 py-2">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="st-prof-${st.key}" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                        <span class="text-xs font-semibold text-gray-200 uppercase">${st.label}</span>
+                    </div>
+                    <span id="st-val-${st.key}" class="text-xs font-bold text-dnd-gold">+0</span>
+                </div>
+            `).join('');
+
+            const skillsContainer = document.getElementById('skills-container');
+            skillsContainer.innerHTML = skillsData.map((skill, index) => `
+                <div class="flex items-center justify-between bg-black/40 border border-dnd-border rounded-xl px-3 py-2">
+                    <div class="flex items-center gap-3">
+                        <select id="skill-prof-${index}" onchange="calculateStats(); saveData()" class="bg-black/60 border border-dnd-border rounded-lg text-xs text-dnd-gold px-1.5 py-1 focus:outline-none">
+                            <option value="0">○</option>
+                            <option value="1">● (Prof)</option>
+                            <option value="2">◆ (Expertise)</option>
+                        </select>
+                        <span onclick="rollSkillCheck(${index})" class="text-xs font-medium text-gray-200 cursor-pointer hover:text-dnd-gold transition underline" title="Clique para rolar teste de d20">${skill.name} <span class="text-[10px] text-gray-500 uppercase">(${skill.stat})</span></span>
+                    </div>
+                    <span id="skill-val-${index}" class="text-xs font-bold text-dnd-gold">+0</span>
+                </div>
+            `).join('');
+
+            const spellSlotsGrid = document.getElementById('spell-slots-grid');
+            let slotsHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                slotsHTML += `
+                    <div class="bg-black/40 border border-dnd-border rounded-xl p-2">
+                        <span class="text-[10px] uppercase font-bold text-dnd-gold block mb-1">${i}º Nível</span>
+                        <div class="flex items-center justify-center gap-1">
+                            <input type="number" id="slot-max-${i}" value="0" oninput="saveData()" class="w-8 bg-black/60 border border-dnd-border rounded text-center text-xs text-white font-bold py-0.5" title="Total">
+                            <span class="text-xs text-gray-500">/</span>
+                            <input type="number" id="slot-used-${i}" value="0" oninput="saveData()" class="w-8 bg-black/60 border border-dnd-border rounded text-center text-xs text-red-400 font-bold py-0.5" title="Gastos">
+                        </div>
+                    </div>
+                `;
+            }
+            spellSlotsGrid.innerHTML = slotsHTML;
+        }
+
+        let weaponsList = [
+            { name: "Espada Longa", atk: "+5", damage: "1d8 + 3 Cortante", mastery: "Sap (Desvantagem no próximo ataque)" }
+        ];
+
+        let inventoryItemsList = [
+            { name: "Poção de Cura", desc: "Restaura 2d4 + 2 pontos de vida.", rarity: "Comum", attunded: false, weight: 0.5 },
+            { name: "Anel de Proteção", desc: "+1 na CA e em testes de resistência.", rarity: "Raro", attunded: true, weight: 0.1 }
+        ];
+
+        let spellsList = [
+            { name: "Mísseis Mágicos (1º)", time: "1 ação / 120 pés", comp: "V, S", conc: "Não", desc: "Cria três dardos brilhantes de energia mágica." }
+        ];
+
+        let speciesTraitsList = [
+            { name: "Visão no Escuro", source: "Espécie (Elfo)", desc: "Você enxerga na penumbra a até 18 metros." }
+        ];
+
+        let classFeaturesList = [
+            { name: "Ação Surto", source: "Guerreiro (Nível 2)", desc: "Você pode realizar uma ação adicional." }
+        ];
+
+        let featsList = [
+            { name: "Resistente (Tough)", source: "Origem / Geral", desc: "Seu HP máximo aumenta." }
+        ];
+
+        let characterAvatarData = "";
+        let diceRollHistory = [];
+
+        function rollDice(sides) {
+            const roll = Math.floor(Math.random() * sides) + 1;
+            const customMod = parseInt(document.getElementById('dice-custom-mod').value) || 0;
+            const total = roll + customMod;
+
+            let breakdown = `D${sides} = ${roll}`;
+            if (customMod !== 0) {
+                breakdown += ` ${customMod >= 0 ? '+' : ''}${customMod} = ${total}`;
+            }
+
+            document.getElementById('dice-last-result').innerText = total;
+            document.getElementById('dice-last-breakdown').innerText = breakdown;
+
+            let isCrit = false;
+            let critText = "";
+            if (sides === 20) {
+                if (roll === 20) { isCrit = true; critText = " (CRÍTICO 20! 🌟)"; }
+                else if (roll === 1) { isCrit = true; critText = " (FALHA CRÍTICA 1! 💀)"; }
+            }
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            diceRollHistory.unshift({
+                time: timeStr,
+                text: `Rolou 1d${sides}${customMod !== 0 ? (customMod > 0 ? '+' + customMod : customMod) : ''}: ${roll} = <strong>${total}</strong>${critText}`
+            });
+            if (diceRollHistory.length > 15) diceRollHistory.pop();
+            renderDiceHistory();
+
+            if (isCrit) {
+                showModal(roll === 20 ? "Sucesso Crítico!" : "Falha Crítica!", `Rolagem de D20 resultou em ${roll}!`);
+            }
+        }
+
+        function rollCustomDiceExpression() {
+            const exprInput = document.getElementById('custom-dice-expr').value.trim();
+            if (!exprInput) {
+                showModal("Aviso", "Digite uma expressão válida, como 2d6+1d8+3.", true);
+                return;
+            }
+
+            try {
+                // Sanitize and support both + and - signs in expressions like 2d6+1d8-2 or 2d6 - 1
+                // Replace subtraction with +- for uniform splitting
+                let normalized = exprInput.toLowerCase().replace(/\s+/g, '').replace(/-/g, '+-');
+                let parts = normalized.split('+').filter(p => p.length > 0);
+                
+                let totalSum = 0;
+                let breakdownParts = [];
+
+                parts.forEach(part => {
+                    if (part.includes('d')) {
+                        let subParts = part.split('d');
+                        let countStr = subParts[0];
+                        let count = countStr === '' ? 1 : (countStr === '-' ? -1 : parseInt(countStr) || 1);
+                        
+                        let rightSide = subParts[1];
+                        let sides = parseInt(rightSide) || 6;
+                        
+                        let subSum = 0;
+                        let rollsArr = [];
+                        let absCount = Math.abs(count);
+                        
+                        for (let i = 0; i < absCount; i++) {
+                            let r = Math.floor(Math.random() * sides) + 1;
+                            subSum += r;
+                            rollsArr.push(r);
+                        }
+                        
+                        if (count < 0) {
+                            subSum = -subSum;
+                            totalSum += subSum;
+                            breakdownParts.push(`-${absCount}d${sides}[${rollsArr.join(',')}]`);
+                        } else {
+                            totalSum += subSum;
+                            breakdownParts.push(`${count}d${sides}[${rollsArr.join(',')}]`);
+                        }
+                    } else {
+                        let num = parseInt(part) || 0;
+                        totalSum += num;
+                        breakdownParts.push(`${num >= 0 ? '+' + num : num}`);
+                    }
+                });
+
+                document.getElementById('dice-last-result').innerText = totalSum;
+                document.getElementById('dice-last-breakdown').innerText = `${exprInput} = ${totalSum}`;
+
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                diceRollHistory.unshift({
+                    time: timeStr,
+                    text: `Expressão [${exprInput}] = <strong>${totalSum}</strong> (${breakdownParts.join(' ')})`
+                });
+                if (diceRollHistory.length > 15) diceRollHistory.pop();
+                renderDiceHistory();
+
+            } catch (e) {
+                showModal("Erro na Expressão", "Formato inválido. Use o padrão ex: 2d6+1d8+3", true);
+            }
+        }
+
+        function renderDiceHistory() {
+            const container = document.getElementById('dice-history-list');
+            if (!container) return;
+            if (diceRollHistory.length === 0) {
+                container.innerHTML = '<span class="text-gray-500 italic">As rolagens aparecerão aqui...</span>';
+                return;
+            }
+            container.innerHTML = diceRollHistory.map(item => `
+                <div class="flex items-center justify-between border-b border-dnd-border/40 pb-1">
+                    <span>${item.text}</span>
+                    <span class="text-[10px] text-gray-500">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearDiceHistory() {
+            diceRollHistory = [];
+            renderDiceHistory();
+        }
+
+        function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                characterAvatarData = e.target.result;
+                displayAvatar();
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeAvatar() {
+            characterAvatarData = "";
+            displayAvatar();
+            saveData();
+        }
+
+        function displayAvatar() {
+            const preview = document.getElementById('avatar-preview');
+            const placeholder = document.getElementById('avatar-placeholder');
+            if (characterAvatarData) {
+                preview.src = characterAvatarData;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                preview.src = "";
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        }
+
+        function renderWeapons() {
+            const tbody = document.getElementById('weapons-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = weaponsList.map((w, idx) => `
+                <tr>
+                    <td class="p-2.5"><input type="text" value="${w.name}" oninput="weaponsList[${idx}].name = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
+                    <td class="p-2.5"><input type="text" value="${w.atk}" oninput="weaponsList[${idx}].atk = this.value; saveData()" class="w-20 bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
+                    <td class="p-2.5"><input type="text" value="${w.damage}" oninput="weaponsList[${idx}].damage = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
+                    <td class="p-2.5"><input type="text" value="${w.mastery}" oninput="weaponsList[${idx}].mastery = this.value; saveData()" class="w-full bg-black/40 border border-dnd-border rounded px-2 py-1 text-white text-xs"></td>
+                    <td class="p-2.5 text-right"><button onclick="removeWeapon(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        function addWeaponRow() {
+            weaponsList.push({ name: "Nova Arma", atk: "+3", damage: "1d6", mastery: "Nenhuma" });
+            renderWeapons();
+            saveData();
+        }
+
+        function removeWeapon(idx) {
+            weaponsList.splice(idx, 1);
+            renderWeapons();
+            saveData();
+        }
+
+        function renderInventoryItems() {
+            const container = document.getElementById('inventory-items-container');
+            if (!container) return;
+            container.innerHTML = inventoryItemsList.map((item, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                        <div class="sm:col-span-4">
+                            <input type="text" value="${item.name}" placeholder="Nome do Item" oninput="inventoryItemsList[${idx}].name = this.value; saveData(); calculateTotalWeight();" class="w-full bg-black/60 border border-dnd-border rounded px-2.5 py-1 text-white text-xs font-semibold">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <select onchange="inventoryItemsList[${idx}].rarity = this.value; saveData();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-xs text-dnd-gold">
+                                <option value="Comum" ${item.rarity === 'Comum' ? 'selected' : ''}>Comum</option>
+                                <option value="Incomum" ${item.rarity === 'Incomum' ? 'selected' : ''}>Incomum</option>
+                                <option value="Raro" ${item.rarity === 'Raro' ? 'selected' : ''}>Raro</option>
+                                <option value="Muito Raro" ${item.rarity === 'Muito Raro' ? 'selected' : ''}>Muito Raro</option>
+                                <option value="Lendário" ${item.rarity === 'Lendário' ? 'selected' : ''}>Lendário</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center justify-center gap-1.5">
+                            <input type="checkbox" id="attune-${idx}" ${item.attunded ? 'checked' : ''} onchange="inventoryItemsList[${idx}].attunded = this.checked; saveData();" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                            <label for="attune-${idx}" class="text-[10px] text-gray-300 uppercase cursor-pointer">Sinton.</label>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center gap-1">
+                            <input type="number" step="0.1" value="${item.weight}" placeholder="Peso" oninput="inventoryItemsList[${idx}].weight = parseFloat(this.value) || 0; saveData(); calculateTotalWeight();" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs text-center">
+                            <span class="text-[10px] text-gray-400">lbs</span>
+                        </div>
+                        <div class="sm:col-span-1 text-right">
+                            <button onclick="removeInventoryItem(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea placeholder="Descrição..." oninput="inventoryItemsList[${idx}].desc = this.value; saveData();" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-dnd-gold">${item.desc || ''}</textarea>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-gray-500 italic text-center py-4">Nenhum item cadastrado.</p>';
+            calculateTotalWeight();
+        }
+
+        function addInventoryItem() {
+            inventoryItemsList.push({ name: "Novo Item", desc: "", rarity: "Comum", attunded: false, weight: 1.0 });
+            renderInventoryItems();
+            saveData();
+        }
+
+        function removeInventoryItem(idx) {
+            inventoryItemsList.splice(idx, 1);
+            renderInventoryItems();
+            saveData();
+        }
+
+        function calculateTotalWeight() {
+            let total = 0;
+            inventoryItemsList.forEach(item => { total += (parseFloat(item.weight) || 0); });
+            const el = document.getElementById('total-weight-calc');
+            if (el) el.innerText = total.toFixed(1) + ' lbs';
+        }
+
+        function renderFeatureCards() {
+            const speciesContainer = document.getElementById('species-traits-container');
+            if (speciesContainer) {
+                speciesContainer.innerHTML = speciesTraitsList.map((item, idx) => `
+                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${item.name}" oninput="speciesTraitsList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
+                            <input type="text" value="${item.source}" oninput="speciesTraitsList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
+                            <button onclick="removeFeatureCard('species', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <textarea oninput="speciesTraitsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
+                    </div>
+                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhum traço de espécie.</p>';
+            }
+
+            const classContainer = document.getElementById('class-features-container');
+            if (classContainer) {
+                classContainer.innerHTML = classFeaturesList.map((item, idx) => `
+                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${item.name}" oninput="classFeaturesList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
+                            <input type="text" value="${item.source}" oninput="classFeaturesList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
+                            <button onclick="removeFeatureCard('class', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <textarea oninput="classFeaturesList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
+                    </div>
+                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhuma característica.</p>';
+            }
+
+            const featsContainer = document.getElementById('feats-container');
+            if (featsContainer) {
+                featsContainer.innerHTML = featsList.map((item, idx) => `
+                    <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${item.name}" oninput="featsList[${idx}].name = this.value; saveData()" class="flex-1 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
+                            <input type="text" value="${item.source}" oninput="featsList[${idx}].source = this.value; saveData()" class="w-32 bg-black/60 border border-dnd-border rounded px-2 py-1 text-dnd-gold text-xs">
+                            <button onclick="removeFeatureCard('feat', ${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <textarea oninput="featsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300">${item.desc}</textarea>
+                    </div>
+                `).join('') || '<p class="text-xs text-gray-500 italic text-center py-3">Nenhum talento.</p>';
+            }
+        }
+
+        function addFeatureCard(type) {
+            if (type === 'species') speciesTraitsList.push({ name: "Novo Traço", source: "Espécie", desc: "..." });
+            else if (type === 'class') classFeaturesList.push({ name: "Novo Recurso", source: "Classe", desc: "..." });
+            else if (type === 'feat') featsList.push({ name: "Novo Talento", source: "Geral", desc: "..." });
+            renderFeatureCards();
+            saveData();
+        }
+
+        function removeFeatureCard(type, idx) {
+            if (type === 'species') speciesTraitsList.splice(idx, 1);
+            else if (type === 'class') classFeaturesList.splice(idx, 1);
+            else if (type === 'feat') featsList.splice(idx, 1);
+            renderFeatureCards();
+            saveData();
+        }
+
+        function renderSpellsTable() {
+            const container = document.getElementById('spells-list-container');
+            if (!container) return;
+            container.innerHTML = spellsList.map((s, idx) => `
+                <div class="bg-black/40 border border-dnd-border rounded-xl p-4 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
+                        <div class="md:col-span-2">
+                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Nome / Nível</label>
+                            <input type="text" value="${s.name}" oninput="spellsList[${idx}].name = this.value; saveData()" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Tempo de Conjuração</label>
+                            <input type="text" value="${s.time}" oninput="spellsList[${idx}].time = this.value; saveData()" class="w-full bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Componentes / Concen.</label>
+                            <div class="flex gap-1">
+                                <input type="text" value="${s.comp}" oninput="spellsList[${idx}].comp = this.value; saveData()" class="w-1/2 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs" title="Componentes (V,S,M)">
+                                <input type="text" value="${s.conc}" oninput="spellsList[${idx}].conc = this.value; saveData()" class="w-1/2 bg-black/60 border border-dnd-border rounded px-2 py-1 text-white text-xs" title="Concentração">
+                            </div>
+                        </div>
+                        <div class="text-right pt-4">
+                            <button onclick="removeSpellRow(${idx})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea oninput="spellsList[${idx}].desc = this.value; saveData()" rows="2" class="w-full bg-black/60 border border-dnd-border rounded p-2 text-xs text-gray-300" placeholder="Efeito da magia...">${s.desc}</textarea>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-gray-500 italic text-center py-4">Nenhuma magia cadastrada.</p>';
+        }
+
+        function addSpellRow() {
+            spellsList.push({ name: "Nova Magia", time: "1 ação", comp: "V, S", conc: "Não", desc: "..." });
+            renderSpellsTable();
+            saveData();
+        }
+
+        function removeSpellRow(idx) {
+            spellsList.splice(idx, 1);
+            renderSpellsTable();
+            saveData();
+        }
+
+        function triggerShortRest() {
+            showModal("Descanso Curto", "Você pode gastar Dados de Vida para recuperar pontos de vida. Seus recursos de descanso curto foram redefinidos.");
+        }
+
+        function triggerLongRest() {
+            const maxHp = document.getElementById('hp-max').value;
+            document.getElementById('hp-current').value = maxHp;
+            document.getElementById('hp-temp').value = 0;
+            document.getElementById('exhaustion-level').value = 0;
+            updateExhaustion();
+            
+            for (let i = 1; i <= 9; i++) {
+                const usedInput = document.getElementById(`slot-used-${i}`);
+                if (usedInput) usedInput.value = 0;
+            }
+
+            saveData();
+            showModal("Descanso Longo", "Seu HP foi totalmente restaurado, exaustão zerada e espaços de magia recuperados com sucesso!");
+        }
+
+        function saveData(manual = false) {
+            const data = {
+                name: document.getElementById('char-name').value,
+                pronouns: document.getElementById('char-pronouns').value,
+                charClass: document.getElementById('char-class').value,
+                species: document.getElementById('char-species').value,
+                levelNum: document.getElementById('char-level-num').value,
+                background: document.getElementById('char-background').value,
+                alignment: document.getElementById('char-alignment').value,
+                player: document.getElementById('char-player').value,
+                xp: document.getElementById('char-xp').value,
+                multiclassList: multiclassList,
+                ac: document.getElementById('val-ac').value,
+                speed: document.getElementById('val-speed').value,
+                inspiration: document.getElementById('heroic-inspiration').checked,
+                hpCurrent: document.getElementById('hp-current').value,
+                hpTemp: document.getElementById('hp-temp').value,
+                hitDice: document.getElementById('hit-dice').value,
+                exhaustionLevel: document.getElementById('exhaustion-level').value,
+                dsSucc: [
+                    document.getElementById('ds-succ-1').checked,
+                    document.getElementById('ds-succ-2').checked,
+                    document.getElementById('ds-succ-3').checked
+                ],
+                dsFail: [
+                    document.getElementById('ds-fail-1').checked,
+                    document.getElementById('ds-fail-2').checked,
+                    document.getElementById('ds-fail-3').checked
+                ],
+                stats: {
+                    str: document.getElementById('stat-str').value,
+                    dex: document.getElementById('stat-dex').value,
+                    con: document.getElementById('stat-con').value,
+                    int: document.getElementById('stat-int').value,
+                    wis: document.getElementById('stat-wis').value,
+                    cha: document.getElementById('stat-cha').value
+                },
+                featTough: document.getElementById('feat-tough').checked,
+                traitDwarf: document.getElementById('trait-dwarf').checked,
+                savingThrowsProfs: savingThrowsData.map(st => document.getElementById(`st-prof-${st.key}`).checked),
+                skillsProfs: skillsData.map((_, idx) => document.getElementById(`skill-prof-${idx}`).value),
+                coins: {
+                    cp: document.getElementById('coin-cp').value,
+                    sp: document.getElementById('coin-sp').value,
+                    ep: document.getElementById('coin-ep').value,
+                    gp: document.getElementById('coin-gp').value,
+                    pp: document.getElementById('coin-pp').value
+                },
+                equipmentNotes: document.getElementById('char-equipment').value,
+                spellAbility: document.getElementById('spell-ability').value,
+                spellSlots: Array.from({length: 9}, (_, i) => ({
+                    max: document.getElementById(`slot-max-${i+1}`).value,
+                    used: document.getElementById(`slot-used-${i+1}`).value
+                })),
+                proficiencies: {
+                    armor: document.getElementById('prof-armor').value,
+                    weapons: document.getElementById('prof-weapons').value,
+                    tools: document.getElementById('prof-tools').value,
+                    languages: document.getElementById('prof-languages').value
+                },
+                bio: {
+                    age: document.getElementById('bio-age').value,
+                    height: document.getElementById('bio-height').value,
+                    weight: document.getElementById('bio-weight').value,
+                    eyes: document.getElementById('bio-eyes').value,
+                    skin: document.getElementById('bio-skin').value,
+                    hair: document.getElementById('bio-hair').value,
+                    traits: document.getElementById('role-traits').value,
+                    ideals: document.getElementById('role-ideals').value,
+                    bonds: document.getElementById('role-bonds').value,
+                    flaws: document.getElementById('role-flaws').value,
+                    allies: document.getElementById('bio-allies').value,
+                    quests: document.getElementById('bio-quests').value
+                },
+                weaponsList,
+                inventoryItemsList,
+                spellsList,
+                speciesTraitsList,
+                classFeaturesList,
+                featsList,
+                characterAvatarData
+            };
+
+            localStorage.setItem('dnd2024_porquin_sheet', JSON.stringify(data));
+            if (manual) {
+                showModal("Sucesso", "Ficha salva com sucesso no navegador!");
+            }
+        }
+
+        function loadData() {
+            const raw = localStorage.getItem('dnd2024_porquin_sheet');
+            if (!raw) return;
+            try {
+                const data = JSON.parse(raw);
+                if (data.name !== undefined) document.getElementById('char-name').value = data.name;
+                if (data.pronouns !== undefined) document.getElementById('char-pronouns').value = data.pronouns;
+                if (data.charClass !== undefined) document.getElementById('char-class').value = data.charClass;
+                if (data.species !== undefined) document.getElementById('char-species').value = data.species;
+                if (data.levelNum !== undefined) document.getElementById('char-level-num').value = data.levelNum;
+                if (data.background !== undefined) document.getElementById('char-background').value = data.background;
+                if (data.alignment !== undefined) document.getElementById('char-alignment').value = data.alignment;
+                if (data.player !== undefined) document.getElementById('char-player').value = data.player;
+                if (data.xp !== undefined) document.getElementById('char-xp').value = data.xp;
+                
+                if (data.multiclassList) {
+                    multiclassList = data.multiclassList;
+                    renderMulticlass();
+                }
+
+                if (data.ac !== undefined) document.getElementById('val-ac').value = data.ac;
+                if (data.speed !== undefined) document.getElementById('val-speed').value = data.speed;
+                if (data.inspiration !== undefined) document.getElementById('heroic-inspiration').checked = data.inspiration;
+                if (data.hpCurrent !== undefined) document.getElementById('hp-current').value = data.hpCurrent;
+                if (data.hpTemp !== undefined) document.getElementById('hp-temp').value = data.hpTemp;
+                if (data.hitDice !== undefined) document.getElementById('hit-dice').value = data.hitDice;
+                if (data.exhaustionLevel !== undefined) {
+                    document.getElementById('exhaustion-level').value = data.exhaustionLevel;
+                    updateExhaustion();
+                }
+
+                if (data.dsSucc) {
+                    document.getElementById('ds-succ-1').checked = data.dsSucc[0];
+                    document.getElementById('ds-succ-2').checked = data.dsSucc[1];
+                    document.getElementById('ds-succ-3').checked = data.dsSucc[2];
+                }
+                if (data.dsFail) {
+                    document.getElementById('ds-fail-1').checked = data.dsFail[0];
+                    document.getElementById('ds-fail-2').checked = data.dsFail[1];
+                    document.getElementById('ds-fail-3').checked = data.dsFail[2];
+                }
+
+                if (data.stats) {
+                    document.getElementById('stat-str').value = data.stats.str;
+                    document.getElementById('stat-dex').value = data.stats.dex;
+                    document.getElementById('stat-con').value = data.stats.con;
+                    document.getElementById('stat-int').value = data.stats.int;
+                    document.getElementById('stat-wis').value = data.stats.wis;
+                    document.getElementById('stat-cha').value = data.stats.cha;
+                }
+
+                if (data.featTough !== undefined) document.getElementById('feat-tough').checked = data.featTough;
+                if (data.traitDwarf !== undefined) document.getElementById('trait-dwarf').checked = data.traitDwarf;
+
+                if (data.savingThrowsProfs) {
+                    savingThrowsData.forEach((st, i) => {
+                        const el = document.getElementById(`st-prof-${st.key}`);
+                        if (el) el.checked = data.savingThrowsProfs[i];
+                    });
+                }
+
+                if (data.skillsProfs) {
+                    skillsData.forEach((_, i) => {
+                        const el = document.getElementById(`skill-prof-${i}`);
+                        if (el) el.value = data.skillsProfs[i];
+                    });
+                }
+
+                if (data.coins) {
+                    document.getElementById('coin-cp').value = data.coins.cp;
+                    document.getElementById('coin-sp').value = data.coins.sp;
+                    document.getElementById('coin-ep').value = data.coins.ep;
+                    document.getElementById('coin-gp').value = data.coins.gp;
+                    document.getElementById('coin-pp').value = data.coins.pp;
+                }
+
+                if (data.equipmentNotes !== undefined) document.getElementById('char-equipment').value = data.equipmentNotes;
+                if (data.spellAbility !== undefined) document.getElementById('spell-ability').value = data.spellAbility;
+
+                if (data.spellSlots) {
+                    data.spellSlots.forEach((slot, i) => {
+                        const maxEl = document.getElementById(`slot-max-${i+1}`);
+                        const usedEl = document.getElementById(`slot-used-${i+1}`);
+                        if (maxEl) maxEl.value = slot.max;
+                        if (usedEl) usedEl.value = slot.used;
+                    });
+                }
+
+                if (data.proficiencies) {
+                    document.getElementById('prof-armor').value = data.proficiencies.armor;
+                    document.getElementById('prof-weapons').value = data.proficiencies.weapons;
+                    document.getElementById('prof-tools').value = data.proficiencies.tools;
+                    document.getElementById('prof-languages').value = data.proficiencies.languages;
+                }
+
+                if (data.bio) {
+                    document.getElementById('bio-age').value = data.bio.age;
+                    document.getElementById('bio-height').value = data.bio.height;
+                    document.getElementById('bio-weight').value = data.bio.weight;
+                    document.getElementById('bio-eyes').value = data.bio.eyes;
+                    document.getElementById('bio-skin').value = data.bio.skin;
+                    document.getElementById('bio-hair').value = data.bio.hair;
+                    document.getElementById('role-traits').value = data.bio.traits;
+                    document.getElementById('role-ideals').value = data.bio.ideals;
+                    document.getElementById('role-bonds').value = data.bio.bonds;
+                    document.getElementById('role-flaws').value = data.bio.flaws;
+                    document.getElementById('bio-allies').value = data.bio.allies;
+                    document.getElementById('bio-quests').value = data.bio.quests;
+                }
+
+                if (data.weaponsList) weaponsList = data.weaponsList;
+                if (data.inventoryItemsList) inventoryItemsList = data.inventoryItemsList;
+                if (data.spellsList) spellsList = data.spellsList;
+                if (data.speciesTraitsList) speciesTraitsList = data.speciesTraitsList;
+                if (data.classFeaturesList) classFeaturesList = data.classFeaturesList;
+                if (data.featsList) featsList = data.featsList;
+                if (data.characterAvatarData) {
+                    characterAvatarData = data.characterAvatarData;
+                    displayAvatar();
+                }
+            } catch (e) {
+                console.error("Erro ao carregar dados salvos:", e);
+            }
+        }
+
+        function exportData() {
+            const raw = localStorage.getItem('dnd2024_porquin_sheet');
+            if (!raw) {
+                showModal("Aviso", "Nenhum dado encontrado para exportar.", true);
+                return;
+            }
+            const blob = new Blob([raw], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ficha_dnd2024_porquin.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    localStorage.setItem('dnd2024_porquin_sheet', e.target.result);
+                    loadData();
+                    renderDynamicComponents();
+                    renderMulticlass();
+                    renderWeapons();
+                    renderInventoryItems();
+                    renderFeatureCards();
+                    renderSpellsTable();
+                    calculateStats();
+                    showModal("Sucesso", "Ficha importada com sucesso!");
+                } catch (err) {
+                    showModal("Erro", "Arquivo JSON inválido.", true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = function() {
+            renderDynamicComponents();
+            renderMulticlass();
+            loadData();
+            renderWeapons();
+            renderInventoryItems();
+            renderFeatureCards();
+            renderSpellsTable();
+            calculateStats();
+        };
+    </script>
+</body>
+</html>
