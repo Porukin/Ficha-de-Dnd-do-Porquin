@@ -1684,11 +1684,58 @@
             return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
         }
 
+        // APIs de magias podem nomear o tempo de conjuração como casting_time, time,
+        // castingTime ou dentro de properties/stats; alguns retornam objetos em vez de texto.
+        function getRawCastingTime(spell) {
+            if (!spell || typeof spell !== 'object') return '';
+            const props = spell.properties || spell.stats || {};
+            const candidates = [
+                spell.castingTime, spell.casting_time, spell.actionType, spell.time,
+                spell.casting, spell['Casting Time'], spell['Casting Time (Action)'],
+                props.castingTime, props.casting_time, props.actionType, props.time,
+                props.casting, props['Casting Time'], props['Casting Time (Action)']
+            ];
+            for (const candidate of candidates) {
+                if (candidate == null || candidate === '') continue;
+                if (typeof candidate === 'string' || typeof candidate === 'number') return String(candidate);
+                if (Array.isArray(candidate)) {
+                    const text = candidate.map(item => typeof item === 'object' ? (item.name || item.text || item.value || item.type || '') : item).filter(Boolean).join(', ');
+                    if (text) return text;
+                } else if (typeof candidate === 'object') {
+                    const text = candidate.name || candidate.text || candidate.value || candidate.description || candidate.type || candidate.time || candidate.unit;
+                    if (text) return String(text);
+                }
+            }
+            return '';
+        }
+
+        function normalizeCastingTime(value, description = '') {
+            let raw = String(value || '').trim();
+            if (!raw) {
+                // Fallback conservador: só inferir quando a descrição declara claramente o tipo.
+                const desc = String(description || '').trim();
+                const firstSentence = desc.split(/[.!?\n]/, 1)[0];
+                if (/^as a bonus action\b/i.test(firstSentence)) raw = 'bonus action';
+                else if (/^as a reaction\b|^when .* you can use your reaction\b/i.test(firstSentence)) raw = 'reaction';
+                else if (/^as an action\b/i.test(firstSentence)) raw = 'action';
+            }
+            if (!raw) return 'Consultar descrição';
+            const lower = raw.toLowerCase().replace(/[_-]+/g, ' ').trim();
+            if (/bonus\s*action|bonus action|ação bônus|acao bonus/.test(lower)) return '1 Ação Bônus' + (/,/.test(raw) ? ` (${raw.slice(raw.indexOf(',') + 1).trim()})` : '');
+            if (/reaction|reação|reacao/.test(lower)) return '1 Reação' + (/,/.test(raw) ? ` (${raw.slice(raw.indexOf(',') + 1).trim()})` : '');
+            if (/\baction\b|ação|acao/.test(lower)) return '1 Ação' + (/,/.test(raw) ? ` (${raw.slice(raw.indexOf(',') + 1).trim()})` : '');
+            if (/\bminute|\bminutes|\bminuto|\bminutos/.test(lower)) return raw.replace(/\bminutes?\b/ig, 'minuto(s)');
+            if (/\bhour|\bhours|\bhora|\bhoras/.test(lower)) return raw.replace(/\bhours?\b/ig, 'hora(s)');
+            if (/\bround|\brounds|\brodada|\brodadas/.test(lower)) return raw.replace(/\brounds?\b/ig, 'rodada(s)');
+            if (/special|especial/.test(lower)) return 'Especial';
+            return raw;
+        }
+
         async function selectCatalogSpell(index) {
             const entry = spellCatalogCache?.[index];
             if (!entry) return;
             let spell = entry;
-            if (entry._slug && (!entry.description && !entry.desc || !entry.range || !entry.duration || !entry.components)) {
+            if (entry._slug && (!entry.description && !entry.desc || !entry.range || !entry.duration || !entry.components || !getRawCastingTime(entry))) {
                 try {
                     const response = await fetch(`${SPELL_CATALOG_API}/${encodeURIComponent(entry._slug)}`, { headers: { 'Accept': 'application/json' } });
                     if (response.ok) {
@@ -1706,21 +1753,21 @@
             const school = schoolMatch ? schoolMatch[0] : schoolRaw;
             const componentsRaw = spell.components ?? props.components ?? props.Components ?? [];
             const components = Array.isArray(componentsRaw) ? componentsRaw.map(v => String(v).toUpperCase()).join(', ') : String(componentsRaw || '').replace(/\bverbal\b/ig,'V').replace(/\bsomatic\b/ig,'S').replace(/\bmaterial\b/ig,'M');
-            const casting = spell.castingTime || spell.casting_time || spell.actionType || props.castingTime || props['Casting Time'] || props['Casting Time (Action)'] || '';
+            const casting = getRawCastingTime(spell) || getRawCastingTime(entry);
             const range = spell.range || props.range || props.Range || '';
             const duration = spell.duration || props.duration || props.Duration || '';
             let description = spell.description || spell.description_md || spell.desc || props.description || props.Description || '';
             if (typeof description !== 'string') description = JSON.stringify(description);
             description = String(description).replace(/\r\n/g, '\n');
             const spellName = spell.name || entry._name;
-            const normalizedCasting = ({action:'1 Ação', bonusAction:'1 Ação Bônus', reaction:'1 Reação', minute:'1 Minuto', hour:'1 Hora'})[casting] || casting;
+            const normalizedCasting = normalizeCastingTime(casting, description);
             const normalizedRange = String(range).replace(/ feet\b/gi, ' pés').replace(/ mile\b/gi, ' milha').replace(/ miles\b/gi, ' milhas');
             const damageMatch = description.match(/\b\d+d\d+\b/i);
             spellsList.push({
                 name: spellName,
                 level: spellLevelLabel(levelNum),
                 school: spellSchoolPortuguese(school),
-                castingTime: normalizedCasting || '—',
+                castingTime: normalizedCasting || 'Consultar descrição',
                 range: normalizedRange || '—',
                 components: components || '—',
                 duration: duration || '—',
