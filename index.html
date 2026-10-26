@@ -51,6 +51,10 @@
                     <h1 class="cinzel font-bold text-lg text-dnd-gold tracking-wider">D&D 2024</h1>
                     <p class="text-xs text-gray-400">Ficha do Porquin</p>
                 </div>
+                <button type="button" onclick="switchTab('core')" title="Ver personagem / alterar retrato" class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden border border-dnd-gold/50 bg-black/50 flex items-center justify-center shrink-0 hover:border-dnd-gold transition">
+                    <img id="menu-avatar-preview" src="" alt="Retrato do personagem" class="w-full h-full object-cover hidden">
+                    <i id="menu-avatar-placeholder" class="fa-solid fa-user-ninja text-dnd-gold/60"></i>
+                </button>
             </div>
 
             <!-- Tab Navigation -->
@@ -64,6 +68,9 @@
             </nav>
 
             <div class="flex items-center gap-2">
+                <button onclick="clearSheet()" class="bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow" title="Apagar todos os dados da ficha">
+                    <i class="fa-solid fa-trash-can"></i> Limpar ficha
+                </button>
                 <button onclick="saveData(true)" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow" title="Salvar dados da ficha manualmente">
                     <i class="fa-solid fa-floppy-disk"></i> Salvar
                 </button>
@@ -94,6 +101,44 @@
             <div class="flex justify-end">
                 <button onclick="closeModal()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">Entendido</button>
             </div>
+        </div>
+    </div>
+
+    <div id="spellPickerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] hidden items-center justify-center p-3 sm:p-6">
+        <div class="bg-dnd-cardbg border border-dnd-gold/50 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-dnd-border flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="cinzel font-bold text-dnd-gold text-lg"><i class="fa-solid fa-book-sparkles mr-2"></i>Buscar magia — D&D 2024</h3>
+                    <p class="text-xs text-gray-400 mt-1">Pesquise pelo nome oficial da magia em inglês. Ao selecionar, os dados disponíveis serão preenchidos na ficha.</p>
+                </div>
+                <button onclick="closeSpellPicker()" class="text-gray-400 hover:text-white text-xl px-2" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="p-4 border-b border-dnd-border grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_220px] gap-3">
+                <input id="spellPickerSearch" type="search" oninput="renderSpellPickerResults()" placeholder="Buscar magia (ex.: Fireball, Cure Wounds...)" class="w-full bg-black/60 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-dnd-gold">
+                <select id="spellPickerClassFilter" onchange="renderSpellPickerResults()" aria-label="Filtrar magias por classe" class="w-full bg-black/60 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-dnd-gold">
+                    <option value="all">Todas as classes</option>
+                    <option value="Artificer">Artífice (Artificer)</option><option value="Barbarian">Bárbaro (Barbarian)</option><option value="Bard">Bardo (Bard)</option><option value="Cleric">Clérigo (Cleric)</option><option value="Druid">Druida (Druid)</option><option value="Fighter">Guerreiro (Fighter)</option><option value="Monk">Monge (Monk)</option><option value="Paladin">Paladino (Paladin)</option><option value="Ranger">Patrulheiro (Ranger)</option><option value="Rogue">Ladino (Rogue)</option><option value="Sorcerer">Feiticeiro (Sorcerer)</option><option value="Warlock">Bruxo (Warlock)</option><option value="Wizard">Mago (Wizard)</option>
+                </select>
+            </div>
+            <div id="spellPickerStatus" class="px-4 pt-3 text-xs text-gray-400">Carregando catálogo...</div>
+            <div id="spellPickerResults" class="p-4 pt-2 overflow-y-auto space-y-2 min-h-[180px]"></div>
+            <div class="p-4 border-t border-dnd-border flex flex-wrap justify-between gap-2">
+                <p class="text-[10px] text-gray-500 self-center max-w-xl">Catálogo baseado no SRD 5.2.1 (D&D 2024), licenciado sob CC BY 4.0 pela Wizards of the Coast. Magias exclusivas do Livro do Jogador podem não aparecer; use a opção manual para cadastrá-las. Fonte: D&D Beyond / SRD 5.2.1.</p>
+                <div class="flex gap-2 shrink-0"><button onclick="addSpellRowManual()" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-2 rounded-xl text-xs font-bold">Adicionar manualmente</button><button onclick="closeSpellPicker()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-4 py-2 rounded-xl text-xs font-bold">Fechar</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="catalogPickerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[65] hidden items-center justify-center p-3 sm:p-6">
+        <div class="bg-dnd-cardbg border border-dnd-gold/50 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-dnd-border flex items-start justify-between gap-3">
+                <div><h3 id="catalogPickerTitle" class="cinzel font-bold text-dnd-gold text-lg">Buscar no catálogo</h3><p id="catalogPickerSubtitle" class="text-xs text-gray-400 mt-1">Pesquise e selecione para preencher a ficha.</p></div>
+                <button onclick="closeCatalogPicker()" class="text-gray-400 hover:text-white text-xl px-2" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="p-4 border-b border-dnd-border"><input id="catalogPickerSearch" type="search" oninput="renderCatalogPickerResults()" placeholder="Digite para pesquisar..." class="w-full bg-black/60 border border-dnd-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-dnd-gold"></div>
+            <div id="catalogPickerStatus" class="px-4 pt-3 text-xs text-gray-400">Carregando catálogo...</div>
+            <div id="catalogPickerResults" class="p-4 pt-2 overflow-y-auto space-y-2 min-h-[180px]"></div>
+            <div class="p-4 border-t border-dnd-border flex flex-wrap justify-between gap-2"><p class="text-[10px] text-gray-500 self-center max-w-xl">Catálogo baseado em conteúdo aberto do SRD D&D 2024. Nem todo o conteúdo dos livros oficiais está incluído. Você também pode cadastrar entradas manualmente.</p><div class="flex gap-2"><button onclick="addCatalogManual()" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-2 rounded-xl text-xs font-bold">Adicionar manualmente</button><button onclick="closeCatalogPicker()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-4 py-2 rounded-xl text-xs font-bold">Fechar</button></div></div>
         </div>
     </div>
 
@@ -221,6 +266,7 @@
                     <div class="bg-black/50 border border-dnd-border rounded-xl p-3 space-y-3">
                         <span class="text-[10px] uppercase font-bold text-dnd-gold block"><i class="fa-solid fa-shield mr-1"></i> Configuração de CA</span>
                         
+                        <label class="flex items-center gap-2 text-xs text-gray-300 bg-black/40 rounded-lg px-3 py-2"><input type="checkbox" id="ac-add-dex" checked onchange="calculateStats(); saveData()" class="accent-amber-500"> Somar modificador de Destreza à CA</label>
                         <div class="space-y-1">
                             <label class="block text-[9px] uppercase font-bold text-gray-400">Armadura Equipada & Bônus CA</label>
                             <div class="flex gap-2">
@@ -259,9 +305,9 @@
 
                 <div class="md:col-span-2 bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl space-y-4">
                     <h2 class="cinzel font-bold text-dnd-gold text-base mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Saúde, PV & Condições</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
-                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Máximos (Auto)</span>
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Máximos (Total)</span>
                             <input type="number" id="hp-max" value="12" readonly class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-dnd-gold py-1 cursor-not-allowed">
                         </div>
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
@@ -271,6 +317,11 @@
                         <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
                             <span class="text-[10px] uppercase font-bold text-gray-400 block mb-1">PV Temporários</span>
                             <input type="number" id="hp-temp" value="0" oninput="saveData()" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-cyan-400 py-1">
+                        </div>
+                        <div class="bg-black/40 border border-dnd-border rounded-xl p-3">
+                            <label for="hp-max-bonus" class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Bônus de PV Máximos (Magias)</label>
+                            <input type="number" id="hp-max-bonus" value="0" min="0" oninput="calculateStats(); saveData()" title="Bônus temporários de PV máximos, por exemplo, da magia Aid" class="w-full bg-black/60 border border-dnd-border rounded-lg text-center text-xl font-bold text-purple-300 py-1">
+                            <p class="text-[9px] text-gray-500 mt-1">Ex.: Aid (+5 / +10 / +15)</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -407,7 +458,7 @@
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-wand-sparkles mr-2"></i>Ataques, Armas & Maestrias (Weapon Masteries 2024)</h2>
-                    <button onclick="addWeaponRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Arma</button>
+                    <div class="flex flex-wrap gap-2"><button onclick="openCatalogPicker('weapon')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar Arma</button><button onclick="addWeaponRow()" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Manualmente</button></div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-gray-300">
@@ -462,7 +513,7 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-backpack mr-2"></i>Mochila e Itens Equipados</h2>
-                            <button onclick="addInventoryItem()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Item</button>
+                            <div class="flex flex-wrap gap-2"><button onclick="openCatalogPicker('inventory')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar Item</button><button onclick="addInventoryItem()" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Manualmente</button></div>
                         </div>
                         <div id="inventory-items-container" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
                     </div>
@@ -536,37 +587,38 @@
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-book-open mr-2"></i>Truques e Magias Preparadas</h2>
-                    <button onclick="addSpellRow()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Magia</button>
+                    <button onclick="openSpellPicker()" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Magia</button>
                 </div>
                 <div class="space-y-3" id="spells-list-container"></div>
             </div>
         </div>
 
         <div id="tab-features" class="tab-content hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dna mr-2"></i>Traços de Espécie</h2>
-                        <button onclick="addFeatureCard('species')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Traço</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div class="space-y-6">
+                    <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-dna mr-2"></i>Traços de Espécie</h2>
+                            <div class="flex flex-wrap gap-2"><button onclick="openCatalogPicker('species')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar</button><button onclick="addFeatureCard('species')" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Manualmente</button></div>
+                        </div>
+                        <div id="species-traits-container" class="space-y-3 flex-grow"></div>
                     </div>
-                    <div id="species-traits-container" class="space-y-3 flex-grow"></div>
+                    <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-medal mr-2"></i>Talentos e Feats de Origem</h2>
+                            <div class="flex flex-wrap gap-2"><button onclick="openCatalogPicker('feat')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar</button><button onclick="addFeatureCard('feat')" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Manualmente</button></div>
+                        </div>
+                        <div id="feats-container" class="space-y-3 flex-grow"></div>
+                    </div>
                 </div>
 
                 <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-book-skull mr-2"></i>Características de Classe</h2>
-                        <button onclick="addFeatureCard('class')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Recurso</button>
+                        <div class="flex flex-wrap gap-2"><button onclick="openCatalogPicker('class')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar</button><button onclick="addFeatureCard('class')" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Manualmente</button></div>
                     </div>
                     <div id="class-features-container" class="space-y-3 flex-grow"></div>
                 </div>
-            </div>
-
-            <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="cinzel font-bold text-dnd-gold text-base"><i class="fa-solid fa-medal mr-2"></i>Talentos e Featos de Origem (2024)</h2>
-                    <button onclick="addFeatureCard('feat')" class="bg-dnd-gold hover:bg-dnd-darkgold text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar Talento</button>
-                </div>
-                <div id="feats-container" class="space-y-3 flex-grow"></div>
             </div>
 
             <div class="bg-dnd-cardbg border border-dnd-border rounded-2xl p-5 shadow-xl">
@@ -824,6 +876,9 @@
             { title: "Iniciado em Magia", desc: "Você aprende dois truques e uma magia de 1º nível..." }
         ];
 
+        let skillBonuses = {};
+        let savingThrowBonuses = {};
+        let dragState = null;
         let diceRollHistory = [];
         let characterAvatarData = "";
 
@@ -1035,18 +1090,20 @@
             if (hasTough) totalCalculatedHp += (levelNumInput * 2);
             if (hasDwarf) totalCalculatedHp += levelNumInput;
 
-            document.getElementById('hp-max').value = Math.max(1, totalCalculatedHp);
+            const hpMaxBonus = Math.max(0, parseInt(document.getElementById('hp-max-bonus')?.value) || 0);
+            document.getElementById('hp-max').value = Math.max(1, totalCalculatedHp + hpMaxBonus);
 
             const armorBonusVal = parseInt(document.getElementById('armor-bonus').value) || 0;
             const shieldEquipped = document.getElementById('shield-equipped').checked;
             const shieldBonusVal = shieldEquipped ? (parseInt(document.getElementById('shield-bonus').value) || 0) : 0;
             const extraCaVal = parseInt(document.getElementById('armor-extra-bonus').value) || 0;
-            const totalCaCalc = armorBonusVal + shieldBonusVal + extraCaVal;
+            const dexCaBonus = document.getElementById('ac-add-dex').checked ? mods.dex : 0;
+            const totalCaCalc = armorBonusVal + shieldBonusVal + extraCaVal + dexCaBonus;
             document.getElementById('val-ac').value = totalCaCalc;
 
             savingThrowsData.forEach(st => {
                 const isProf = document.getElementById(`st-prof-${st.key}`).checked;
-                const total = mods[st.key] + (isProf ? prof : 0);
+                const total = mods[st.key] + (isProf ? prof : 0) + (parseInt(savingThrowBonuses[st.key]) || 0);
                 document.getElementById(`st-val-${st.key}`).innerText = (total >= 0 ? '+' : '') + total;
             });
 
@@ -1056,6 +1113,7 @@
                 let total = mod;
                 if (profState === 1) total += prof;
                 if (profState === 2) total += (prof * 2);
+                total += parseInt(skillBonuses[index]) || 0;
                 document.getElementById(`skill-val-${index}`).innerText = (total >= 0 ? '+' : '') + total;
             });
 
@@ -1064,6 +1122,7 @@
             let percTotal = 10 + wisMod;
             if (percProf === 1) percTotal += prof;
             if (percProf === 2) percTotal += (prof * 2);
+            percTotal += parseInt(skillBonuses[13]) || 0;
             document.getElementById('passive-perception').innerText = percTotal;
 
             const spellAbility = document.getElementById('spell-ability').value;
@@ -1291,7 +1350,7 @@
                         <input type="checkbox" id="st-prof-${st.key}" onchange="calculateStats(); saveData()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
                         <span onclick="rollSavingThrow('${st.key}')" class="text-xs font-semibold text-gray-200 uppercase cursor-pointer hover:text-dnd-gold transition underline" title="Clique para rolar teste de resistência">${st.label}</span>
                     </div>
-                    <span id="st-val-${st.key}" onclick="rollSavingThrow('${st.key}')" class="text-xs font-bold text-dnd-gold cursor-pointer hover:underline">+0</span>
+                    <div class="flex items-center gap-2"><input type="number" value="${savingThrowBonuses[st.key] || 0}" title="Bônus extra" aria-label="Bônus extra ${st.label}" onchange="savingThrowBonuses['${st.key}']=parseInt(this.value)||0; calculateStats(); saveData()" class="w-14 bg-black/60 border border-dnd-border rounded-lg px-1 py-1 text-xs text-center text-white" placeholder="Extra"><span id="st-val-${st.key}" onclick="rollSavingThrow('${st.key}')" class="text-xs font-bold text-dnd-gold cursor-pointer hover:underline">+0</span></div>
                 </div>
             `).join('');
 
@@ -1306,7 +1365,7 @@
                         </select>
                         <span onclick="rollSkillCheck(${index})" class="text-xs font-medium text-gray-200 cursor-pointer hover:text-dnd-gold transition underline" title="Clique para rolar teste de d20">${skill.name} <span class="text-[10px] text-gray-500 uppercase">(${skill.stat})</span></span>
                     </div>
-                    <span id="skill-val-${index}" class="text-xs font-bold text-dnd-gold">+0</span>
+                    <div class="flex items-center gap-2"><input type="number" value="${skillBonuses[index] || 0}" title="Bônus extra" aria-label="Bônus extra ${skill.name}" onchange="skillBonuses[${index}]=parseInt(this.value)||0; calculateStats(); saveData()" class="w-14 bg-black/60 border border-dnd-border rounded-lg px-1 py-1 text-xs text-center text-white" placeholder="Extra"><span id="skill-val-${index}" class="text-xs font-bold text-dnd-gold">+0</span></div>
                 </div>
             `).join('');
 
@@ -1370,6 +1429,32 @@
             saveData();
         }
 
+        function getCardList(type) {
+            if (type === 'inventory') return inventoryItemsList;
+            if (type === 'spells') return spellsList;
+            if (type === 'species') return speciesTraitsList;
+            if (type === 'class') return classFeaturesList;
+            if (type === 'feat') return featsList;
+            return [];
+        }
+        function startCardDrag(event, type, index) {
+            dragState = { type, index };
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', `${type}:${index}`);
+        }
+        function dropCardDrag(event, type, targetIndex) {
+            event.preventDefault();
+            if (!dragState || dragState.type !== type || dragState.index === targetIndex) return;
+            const list = getCardList(type);
+            const moved = list.splice(dragState.index, 1)[0];
+            list.splice(targetIndex, 0, moved);
+            dragState = null;
+            if (type === 'inventory') renderInventory();
+            else if (type === 'spells') renderSpells();
+            else renderFeatureCards(type);
+            saveData();
+        }
+
         function renderInventory() {
             const container = document.getElementById('inventory-items-container');
             if (!container) return;
@@ -1379,10 +1464,11 @@
                 return;
             }
             container.innerHTML = inventoryItemsList.map((item, idx) => `
-                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                    <div class="flex flex-wrap items-center gap-2">
+                <div draggable="true" ondragstart="startCardDrag(event, 'inventory', ${idx})" ondragover="event.preventDefault()" ondrop="dropCardDrag(event, 'inventory', ${idx})" class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2 cursor-move" title="Arraste para reorganizar">
+                    <div class="flex flex-wrap items-center gap-2"><i class="fa-solid fa-grip-vertical text-gray-500" title="Arraste para reorganizar"></i>
                         <input type="text" value="${item.name}" oninput="inventoryItemsList[${idx}].name = this.value; saveData();" placeholder="Nome do Item" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
                         <select onchange="inventoryItemsList[${idx}].rarity = this.value; saveData();" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold">
+                            <option value="Mundano" ${(!item.rarity || item.rarity === 'Mundano') ? 'selected' : ''}>Mundano</option>
                             <option value="Comum" ${item.rarity === 'Comum' ? 'selected' : ''}>Comum</option>
                             <option value="Incomum" ${item.rarity === 'Incomum' ? 'selected' : ''}>Incomum</option>
                             <option value="Raro" ${item.rarity === 'Raro' ? 'selected' : ''}>Raro</option>
@@ -1443,8 +1529,8 @@
                 return;
             }
             container.innerHTML = spellsList.map((spell, idx) => `
-                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                    <div class="flex flex-wrap items-center gap-2">
+                <div draggable="true" ondragstart="startCardDrag(event, 'spells', ${idx})" ondragover="event.preventDefault()" ondrop="dropCardDrag(event, 'spells', ${idx})" class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2 cursor-move" title="Arraste para reorganizar">
+                    <div class="flex flex-wrap items-center gap-2"><i class="fa-solid fa-grip-vertical text-gray-500" title="Arraste para reorganizar"></i>
                         <input type="text" value="${spell.name}" oninput="spellsList[${idx}].name = this.value; saveData();" placeholder="Nome da Magia" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
                         <select onchange="spellsList[${idx}].level = this.value; saveData();" class="bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold">
                             <option value="Truque" ${spell.level === 'Truque' ? 'selected' : ''}>Truque</option>
@@ -1458,7 +1544,9 @@
                             <option value="8º Nível" ${spell.level === '8º Nível' ? 'selected' : ''}>8º Nível</option>
                             <option value="9º Nível" ${spell.level === '9º Nível' ? 'selected' : ''}>9º Nível</option>
                         </select>
-                        <input type="text" value="${spell.school || ''}" oninput="spellsList[${idx}].school = this.value; saveData();" placeholder="Escola (Ex: Evocação)" class="w-28 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-gray-300">
+                        <select onchange="spellsList[${idx}].school = this.value; saveData();" aria-label="Escola da magia" class="w-36 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-gray-300">
+                            ${['Abjuração','Adivinhação','Conjuração','Encantamento','Evocação','Ilusão','Necromancia','Transmutação'].map(school => `<option value="${school}" ${(spell.school || 'Evocação') === school ? 'selected' : ''}>${school}</option>`).join('')}
+                        </select>
                         <input type="text" value="${spell.damageExpr || ''}" oninput="spellsList[${idx}].damageExpr = this.value; saveData();" placeholder="Dano (Ex: 8d6)" class="w-28 bg-black/60 border border-dnd-border rounded-lg px-2.5 py-1.5 text-xs text-dnd-gold" title="Expressão de Dano para Rolagem rápida">
                         <label class="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer bg-black/60 px-2 py-1.5 rounded-lg border border-dnd-border">
                             <input type="checkbox" ${spell.prepared ? 'checked' : ''} onchange="spellsList[${idx}].prepared = this.checked; saveData();" class="accent-amber-500 rounded"> Preparada
@@ -1479,16 +1567,320 @@
             `).join('');
         }
 
-        function addSpellRow() {
-            spellsList.push({ name: "Nova Magia", level: "1º Nível", school: "Evocação", castingTime: "1 Ação", range: "9m", components: "V, S", duration: "Instantânea", prepared: true, desc: "Efeitos...", damageExpr: "2d6" });
+        const SPELL_CATALOG_API = 'https://apisearch.thedmstoolkit.com/api/2024/spells';
+        let spellCatalogCache = null;
+        let spellCatalogLoading = false;
+
+        function openSpellPicker() {
+            const modal = document.getElementById('spellPickerModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('spellPickerSearch').value = '';
+            const classFilter = document.getElementById('spellPickerClassFilter');
+            const currentClass = document.getElementById('char-class')?.value || 'all';
+            if (classFilter) classFilter.value = currentClass;
+            if (!spellCatalogCache && !spellCatalogLoading) loadSpellCatalog();
+            else renderSpellPickerResults();
+            setTimeout(() => document.getElementById('spellPickerSearch').focus(), 50);
+        }
+
+        function closeSpellPicker() {
+            const modal = document.getElementById('spellPickerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function getSpellCatalogData(payload) {
+            if (Array.isArray(payload)) return payload;
+            if (Array.isArray(payload?.data)) return payload.data;
+            if (Array.isArray(payload?.data?.data)) return payload.data.data;
+            if (Array.isArray(payload?.spells)) return payload.spells;
+            return [];
+        }
+
+        async function loadSpellCatalog() {
+            spellCatalogLoading = true;
+            document.getElementById('spellPickerStatus').innerText = 'Conectando ao catálogo de magias SRD 5.2.1...';
+            document.getElementById('spellPickerResults').innerHTML = '';
+            try {
+                const response = await fetch(SPELL_CATALOG_API, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const payload = await response.json();
+                const records = getSpellCatalogData(payload);
+                if (!records.length) throw new Error('O catálogo não retornou uma lista de magias.');
+                spellCatalogCache = records.map(spell => ({
+                    ...spell,
+                    _slug: spell.slug || spell.id || '',
+                    _name: spell.name || spell.title || 'Magia sem nome',
+                    _level: (spell.level ?? spell.properties?.level ?? spell.properties?.Level) == null ? null : Number(spell.level ?? spell.properties?.level ?? spell.properties?.Level),
+                    _school: spell.school || spell.properties?.school || spell.properties?.School || '',
+                    _classes: extractSpellClassNames(spell),
+                })).sort((a,b) => a._name.localeCompare(b._name));
+                renderSpellPickerResults();
+            } catch (err) {
+                document.getElementById('spellPickerStatus').innerText = 'Não foi possível carregar o catálogo online. Verifique sua conexão e tente novamente, ou adicione a magia manualmente.';
+                document.getElementById('spellPickerResults').innerHTML = `<button onclick="loadSpellCatalog()" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border rounded-xl px-4 py-3 text-xs text-dnd-gold">Tentar carregar novamente</button><p class="text-xs text-gray-500 mt-2">Detalhe: ${String(err.message || err).replace(/[<>&]/g, '')}</p>`;
+            } finally {
+                spellCatalogLoading = false;
+            }
+        }
+
+        function spellLevelLabel(level) {
+            const n = Number(level) || 0;
+            return n === 0 ? 'Truque' : `${n}º Nível`;
+        }
+
+        function spellSchoolPortuguese(school) {
+            const map = { abjuration:'Abjuração', divination:'Adivinhação', conjuration:'Conjuração', enchantment:'Encantamento', evocation:'Evocação', illusion:'Ilusão', necromancy:'Necromancia', transmutation:'Transmutação' };
+            const key = String(school || '').toLowerCase().trim();
+            return map[key] || (school ? String(school).charAt(0).toUpperCase() + String(school).slice(1) : 'Evocação');
+        }
+
+        function extractSpellClassNames(spell) {
+            const candidates = [spell.classes, spell.class, spell.availableClasses, spell.class_list, spell.properties?.classes, spell.properties?.class, spell.spellcasting?.classes];
+            const values = [];
+            const collect = value => {
+                if (Array.isArray(value)) value.forEach(collect);
+                else if (value && typeof value === 'object') {
+                    if (value.name) values.push(String(value.name));
+                    else if (value.index) values.push(String(value.index));
+                    else Object.values(value).forEach(collect);
+                } else if (typeof value === 'string' && value.trim()) {
+                    value.split(/[,;/|]/).forEach(part => { if (part.trim()) values.push(part.trim()); });
+                }
+            };
+            candidates.forEach(collect);
+            const normalize = value => String(value).toLowerCase().replace(/[^a-z]/g, '');
+            const aliases = {artificer:['artificer','artificer'], barbarian:['barbarian','barbaro'], bard:['bard','bardo'], cleric:['cleric','clerigo'], druid:['druid','druida'], fighter:['fighter','guerreiro'], monk:['monk','monge'], paladin:['paladin','paladino'], ranger:['ranger','patrulheiro'], rogue:['rogue','ladino'], sorcerer:['sorcerer','feiticeiro'], warlock:['warlock','bruxo'], wizard:['wizard','mago']};
+            const normalized = values.map(normalize);
+            return Object.keys(aliases).filter(key => aliases[key].some(alias => normalized.some(v => v === normalize(alias) || v.includes(normalize(alias)))));
+        }
+
+        function renderSpellPickerResults() {
+            const resultsEl = document.getElementById('spellPickerResults');
+            const statusEl = document.getElementById('spellPickerStatus');
+            if (!spellCatalogCache) {
+                if (!spellCatalogLoading) statusEl.innerText = 'Catálogo ainda não carregado.';
+                return;
+            }
+            const query = document.getElementById('spellPickerSearch').value.trim().toLocaleLowerCase();
+            const selectedClass = document.getElementById('spellPickerClassFilter')?.value || 'all';
+            const classFiltered = spellCatalogCache.filter(spell => selectedClass === 'all' || !spell._classes?.length || spell._classes.includes(selectedClass));
+            const filtered = classFiltered.filter(spell => {
+                const name = spell._name.toLocaleLowerCase();
+                const school = String(spell._school || '').toLocaleLowerCase();
+                return !query || name.includes(query) || school.includes(query);
+            }).slice(0, 100);
+            const unknownClassCount = selectedClass === 'all' ? 0 : classFiltered.filter(spell => !spell._classes?.length).length;
+            statusEl.innerText = `${filtered.length} resultado(s) exibido(s)${filtered.length === 100 ? ' (limite de 100; refine a busca)' : ''} · ${spellCatalogCache.length} magias no catálogo.${selectedClass !== 'all' && unknownClassCount ? ` Algumas entradas sem lista de classe na fonte também são mostradas (${unknownClassCount}).` : ''}`;
+            if (!filtered.length) {
+                resultsEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">Nenhuma magia encontrada. Tente outro termo ou cadastre manualmente.</p>';
+                return;
+            }
+            resultsEl.innerHTML = filtered.map((spell, index) => `<button onclick="selectCatalogSpell(${spellCatalogCache.indexOf(spell)})" class="w-full text-left bg-black/40 hover:bg-zinc-800 border border-dnd-border hover:border-dnd-gold/60 rounded-xl p-3 flex items-center justify-between gap-3 transition"><span class="min-w-0"><span class="block text-sm text-white font-semibold truncate">${escapeSpellHtml(spell._name)}</span><span class="block text-[10px] text-gray-400 mt-1">D&D 2024 · clique para adicionar e carregar detalhes</span></span><i class="fa-solid fa-plus text-dnd-gold"></i></button>`).join('');
+        }
+
+        function escapeSpellHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+
+        async function selectCatalogSpell(index) {
+            const entry = spellCatalogCache?.[index];
+            if (!entry) return;
+            let spell = entry;
+            if (entry._slug && (!entry.description && !entry.desc || !entry.range || !entry.duration || !entry.components)) {
+                try {
+                    const response = await fetch(`${SPELL_CATALOG_API}/${encodeURIComponent(entry._slug)}`, { headers: { 'Accept': 'application/json' } });
+                    if (response.ok) {
+                        const payload = await response.json();
+                        spell = payload?.data?.data || payload?.data || payload?.spell || payload;
+                    }
+                } catch (e) { /* Mantém os dados disponíveis na lista se o detalhe falhar. */ }
+            }
+            const props = spell.properties || spell.stats || {};
+            const levelRaw = spell.level ?? props.level ?? props.Level ?? entry._level ?? 0;
+            const levelMatch = String(levelRaw).match(/\d+/);
+            const levelNum = levelMatch ? Number(levelMatch[0]) : 0;
+            const schoolRaw = spell.school || props.school || props.School || entry._school || '';
+            const schoolMatch = String(schoolRaw).match(/abjuration|divination|conjuration|enchantment|evocation|illusion|necromancy|transmutation/i);
+            const school = schoolMatch ? schoolMatch[0] : schoolRaw;
+            const componentsRaw = spell.components ?? props.components ?? props.Components ?? [];
+            const components = Array.isArray(componentsRaw) ? componentsRaw.map(v => String(v).toUpperCase()).join(', ') : String(componentsRaw || '').replace(/\bverbal\b/ig,'V').replace(/\bsomatic\b/ig,'S').replace(/\bmaterial\b/ig,'M');
+            const casting = spell.castingTime || spell.casting_time || spell.actionType || props.castingTime || props['Casting Time'] || props['Casting Time (Action)'] || '';
+            const range = spell.range || props.range || props.Range || '';
+            const duration = spell.duration || props.duration || props.Duration || '';
+            let description = spell.description || spell.description_md || spell.desc || props.description || props.Description || '';
+            if (typeof description !== 'string') description = JSON.stringify(description);
+            description = String(description).replace(/\r\n/g, '\n');
+            const spellName = spell.name || entry._name;
+            const normalizedCasting = ({action:'1 Ação', bonusAction:'1 Ação Bônus', reaction:'1 Reação', minute:'1 Minuto', hour:'1 Hora'})[casting] || casting;
+            const normalizedRange = String(range).replace(/ feet\b/gi, ' pés').replace(/ mile\b/gi, ' milha').replace(/ miles\b/gi, ' milhas');
+            const damageMatch = description.match(/\b\d+d\d+\b/i);
+            spellsList.push({
+                name: spellName,
+                level: spellLevelLabel(levelNum),
+                school: spellSchoolPortuguese(school),
+                castingTime: normalizedCasting || '—',
+                range: normalizedRange || '—',
+                components: components || '—',
+                duration: duration || '—',
+                prepared: true,
+                desc: description || 'Descrição não disponível no catálogo; consulte o livro de regras.',
+                damageExpr: damageMatch ? damageMatch[0] : ''
+            });
             renderSpells();
             saveData();
+            closeSpellPicker();
+            showModal('Magia adicionada', `${spellName} foi adicionada à ficha. Confira os campos preenchidos, pois a ficha mantém os nomes oficiais do catálogo em inglês.`);
+        }
+
+        function addSpellRow() { openSpellPicker(); }
+
+        function addSpellRowManual() {
+            spellsList.push({ name: 'Nova Magia', level: '1º Nível', school: 'Evocação', castingTime: '1 Ação', range: '9m', components: 'V, S', duration: 'Instantânea', prepared: true, desc: '', damageExpr: '' });
+            renderSpells();
+            saveData();
+            closeSpellPicker();
         }
 
         function removeSpellRow(idx) {
             spellsList.splice(idx, 1);
             renderSpells();
             saveData();
+        }
+
+        // Catálogos pesquisáveis de equipamento, armas, espécie, talentos e características.
+        const CATALOG_API = 'https://apisearch.thedmstoolkit.com/api';
+        const DND_API_2024 = 'https://www.dnd5eapi.co/api/2024';
+        let catalogPickerType = 'weapon';
+        let catalogPickerCache = {};
+        let catalogPickerLoading = false;
+        const catalogConfig = {
+            weapon: { title:'Buscar arma — D&D 2024', subtitle:'Pesquise armas e adicione seus dados de ataque e maestria.', endpoints:[`${DND_API_2024}/equipment`, `${CATALOG_API}/2024/items`], manual:'weapon' },
+            inventory: { title:'Buscar equipamento — D&D 2024', subtitle:'Pesquise equipamentos, itens e objetos mágicos.', endpoints:[`${DND_API_2024}/equipment`, `${CATALOG_API}/2024/items`], manual:'inventory' },
+            species: { title:'Buscar espécie / traços — D&D 2024', subtitle:'Selecione uma espécie; os traços disponíveis serão incluídos na seção Traços de Espécie.', endpoints:[`${CATALOG_API}/expanded/species`, `${DND_API_2024}/species`], manual:'species' },
+            feat: { title:'Buscar talento — D&D 2024', subtitle:'Pesquise talentos de origem e outros talentos presentes no catálogo aberto.', endpoints:[`${CATALOG_API}/2024/feats`, `${CATALOG_API}/expanded/feats`, `${DND_API_2024}/feats`], manual:'feat' },
+            class: { title:'Buscar característica de classe — D&D 2024', subtitle:'Pesquise características e recursos de classe. A disponibilidade varia conforme o SRD.', endpoints:[`${DND_API_2024}/features`, `${CATALOG_API}/expanded/classes`, `${DND_API_2024}/classes`], manual:'class' }
+        };
+        const weaponMasteryByName = {
+            'club':'Slow','dagger':'Nick','greatclub':'Push','handaxe':'Vex','javelin':'Slow','light hammer':'Nick','mace':'Sap','quarterstaff':'Topple','sickle':'Nick','spear':'Sap',
+            'light crossbow':'Slow','dart':'Vex','shortbow':'Vex','sling':'Slow','battleaxe':'Topple','flail':'Sap','glaive':'Graze','greataxe':'Cleave','greatsword':'Graze','halberd':'Cleave','lance':'Topple','longsword':'Sap','maul':'Topple','morningstar':'Sap','pike':'Push','rapier':'Vex','scimitar':'Nick','shortsword':'Vex','trident':'Topple','war pick':'Sap','warhammer':'Push','whip':'Slow','blowgun':'Vex','hand crossbow':'Vex','heavy crossbow':'Push','longbow':'Slow','musket':'Slow','pistol':'Vex'
+        };
+        function catalogPayloadList(payload) {
+            if (Array.isArray(payload)) return payload;
+            if (Array.isArray(payload?.results)) return payload.results;
+            if (Array.isArray(payload?.data)) return payload.data;
+            if (Array.isArray(payload?.data?.results)) return payload.data.results;
+            if (Array.isArray(payload?.data?.data)) return payload.data.data;
+            for (const k of ['items','equipment','feats','species','classes','features','traits']) if (Array.isArray(payload?.[k])) return payload[k];
+            return [];
+        }
+        function catalogName(record) { return record?.name || record?.title || record?.index || record?.slug || 'Item sem nome'; }
+        function catalogSlug(record) { return record?.slug || record?.index || record?.id || (record?.url ? record.url.split('/').filter(Boolean).pop() : ''); }
+        function openCatalogPicker(type) {
+            catalogPickerType = type;
+            const cfg = catalogConfig[type];
+            const modal = document.getElementById('catalogPickerModal');
+            document.getElementById('catalogPickerTitle').innerText = cfg.title;
+            document.getElementById('catalogPickerSubtitle').innerText = cfg.subtitle;
+            document.getElementById('catalogPickerSearch').value = '';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            if (!catalogPickerCache[type] && !catalogPickerLoading) loadCatalogPicker(type); else renderCatalogPickerResults();
+            setTimeout(() => document.getElementById('catalogPickerSearch').focus(), 50);
+        }
+        function closeCatalogPicker() { const modal=document.getElementById('catalogPickerModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        async function loadCatalogPicker(type) {
+            catalogPickerLoading = true;
+            const status = document.getElementById('catalogPickerStatus');
+            const results = document.getElementById('catalogPickerResults');
+            status.innerText = 'Carregando catálogo online...'; results.innerHTML = '';
+            let lastError = null;
+            try {
+                const collected = [];
+                for (const endpoint of catalogConfig[type].endpoints) {
+                    try {
+                        const response = await fetch(endpoint, {headers:{'Accept':'application/json'}});
+                        if (!response.ok) throw new Error('HTTP '+response.status);
+                        const payload = await response.json();
+                        let records = catalogPayloadList(payload);
+                        // Para espécies/características de classe, o catálogo expandido é preferível quando há detalhes estruturados.
+                        if (records.length) {
+                            records.forEach(record => collected.push({...record, _endpoint:endpoint, _slug:catalogSlug(record), _name:catalogName(record)}));
+                            if (collected.length >= 20 && (type === 'weapon' || type === 'feat' || type === 'species')) break;
+                        }
+                    } catch (e) { lastError = e; }
+                }
+                const unique = new Map();
+                collected.forEach(item => { const key = item._name.toLocaleLowerCase()+'|'+item._endpoint; if (!unique.has(key)) unique.set(key,item); });
+                let records = Array.from(unique.values());
+                if (type === 'weapon') records = records.filter(x => { const text=JSON.stringify([x.category,x.equipment_category,x.type,x.properties,x._name]).toLowerCase(); return /weapon|martial|simple|crossbow|sword|axe|bow|dagger|spear|mace|hammer|staff|club|pike|rapier|trident|whip|musket|pistol/.test(text); });
+                if (type === 'class') records = records.filter(x => /feature|trait|class/i.test(String(x.type||x.category||x._endpoint)) || x._endpoint.includes('/features') || x._endpoint.includes('/classes'));
+                if (!records.length) throw lastError || new Error('O catálogo não retornou resultados compatíveis.');
+                catalogPickerCache[type] = records.sort((a,b)=>a._name.localeCompare(b._name));
+                renderCatalogPickerResults();
+            } catch (err) {
+                status.innerText = 'Não foi possível carregar este catálogo online. Verifique a conexão ou use a opção manual.';
+                results.innerHTML = `<button onclick="loadCatalogPicker(catalogPickerType)" class="bg-zinc-800 hover:bg-zinc-700 border border-dnd-border rounded-xl px-4 py-3 text-xs text-dnd-gold">Tentar novamente</button><p class="text-xs text-gray-500 mt-2">${escapeSpellHtml(String(err.message||err))}</p>`;
+            } finally { catalogPickerLoading = false; }
+        }
+        function renderCatalogPickerResults() {
+            const type=catalogPickerType, records=catalogPickerCache[type], results=document.getElementById('catalogPickerResults'), status=document.getElementById('catalogPickerStatus');
+            if (!records) { if (!catalogPickerLoading) status.innerText='Catálogo ainda não carregado.'; return; }
+            const q=document.getElementById('catalogPickerSearch').value.trim().toLocaleLowerCase();
+            const filtered=records.filter(x => `${x._name} ${x.name||''} ${x.category||''} ${x.type||''} ${x.school||''}`.toLocaleLowerCase().includes(q)).slice(0,100);
+            status.innerText=`${filtered.length} resultado(s) exibido(s)${filtered.length===100?' (limite de 100; refine a busca)':''} · ${records.length} registros carregados.`;
+            if (!filtered.length) { results.innerHTML='<p class="text-sm text-gray-500 text-center py-8">Nenhum resultado encontrado. Tente outro termo ou cadastre manualmente.</p>'; return; }
+            results.innerHTML=filtered.map(x=>`<button onclick="selectCatalogRecord(${records.indexOf(x)})" class="w-full text-left bg-black/40 hover:bg-zinc-800 border border-dnd-border hover:border-dnd-gold/60 rounded-xl p-3 flex items-center justify-between gap-3 transition"><span class="min-w-0"><span class="block text-sm text-white font-semibold">${escapeSpellHtml(x._name)}</span><span class="block text-[10px] text-gray-400 mt-1">${escapeSpellHtml(x.category?.name||x.equipment_category?.name||x.type||x._endpoint.split('/').slice(-1)[0]||'D&D 2024')}</span></span><i class="fa-solid fa-plus text-dnd-gold"></i></button>`).join('');
+        }
+        function plainCatalogDescription(record) {
+            let d=record.description||record.description_md||record.desc||record.desciption||record.properties?.description||'';
+            if (Array.isArray(d)) d=d.join('\n');
+            if (typeof d!=='string') d=JSON.stringify(d||'');
+            return d.replace(/<[^>]*>/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+        }
+        async function selectCatalogRecord(index) {
+            const records=catalogPickerCache[catalogPickerType]||[]; let item=records[index]; if (!item) return;
+            const type=catalogPickerType; const name=item._name;
+            // Buscar detalhes quando a API fornece apenas referências resumidas.
+            if (item._slug && (!plainCatalogDescription(item) || (type==='weapon' && !item.damage))) {
+                const detailUrl=item.url && /^https:\/\//.test(item.url) ? item.url : `${item._endpoint.replace(/\/$/,'')}/${encodeURIComponent(item._slug)}`;
+                try { const res=await fetch(detailUrl,{headers:{'Accept':'application/json'}}); if(res.ok){const payload=await res.json(); item={...item,...(payload?.data?.data||payload?.data||payload?.item||payload)};} } catch(e) {}
+            }
+            const desc=plainCatalogDescription(item) || (item.properties ? JSON.stringify(item.properties,null,2) : 'Descrição não disponível no catálogo; consulte a fonte de regras.');
+            const props=item.properties||item.stats||{};
+            if (type==='weapon') {
+                const dmg=item.damage?.damage_dice||item.damage_dice||item.damage||props.damage||'';
+                const dmgType=item.damage?.damage_type?.name||item.damage_type?.name||item.damageType||'';
+                const mastery=item.mastery||item.weapon_mastery||item.mastery_property||weaponMasteryByName[name.toLowerCase()]||'';
+                weaponsList.push({name,atk:'',damage:[dmg,dmgType].filter(Boolean).join(' '),mastery:typeof mastery==='object'?(mastery.name||mastery.description||''):String(mastery)});
+                renderWeapons(); saveData(); closeCatalogPicker(); showModal('Arma adicionada',`${name} foi adicionada à seção de ataques. Confira o bônus de ataque, dano e maestria e ajuste-os conforme seu personagem.`); return;
+            }
+            if (type==='inventory') {
+                const weight=item.weight ?? props.weight ?? 0;
+                const rarityRaw=String(item.rarity||props.rarity||'Mundano');
+                const rarityMap={'common':'Comum','uncommon':'Incomum','rare':'Raro','very rare':'Muito Raro','legendary':'Lendário','artifact':'Lendário','mundane':'Mundano','mundano':'Mundano'};
+                const rarity=rarityMap[rarityRaw.toLowerCase()]||(['Mundano','Comum','Incomum','Raro','Muito Raro','Lendário'].includes(rarityRaw)?rarityRaw:'Mundano');
+                inventoryItemsList.push({name,desc,rarity,attunded:false,weight:parseFloat(weight)||0});
+                renderInventory(); calculateTotalWeight(); saveData(); closeCatalogPicker(); showModal('Item adicionado',`${name} foi adicionado à mochila. Confira peso, raridade e descrição.`); return;
+            }
+            if (type==='feat') {
+                featsList.push({title:name,desc}); renderFeatureCards('feat'); saveData(); closeCatalogPicker(); showModal('Talento adicionado',`${name} foi adicionado à seção de Talentos e Featos de Origem.`); return;
+            }
+            if (type==='species') {
+                let traits=item.traits||item.species_traits||item.features||props.traits||[];
+                let traitText=Array.isArray(traits)?traits.map(t=>typeof t==='string'?t:(t.name||t.title||'')).filter(Boolean).join(', '):String(traits||'');
+                const finalDesc=[desc,traitText?`\n\nTraços listados: ${traitText}`:''].filter(Boolean).join('');
+                speciesTraitsList.push({title:name,desc:finalDesc}); renderFeatureCards('species'); saveData(); closeCatalogPicker(); showModal('Espécie adicionada',`${name} foi adicionada à seção de Traços de Espécie. Confira a descrição e os traços listados.`); return;
+            }
+            if (type==='class') {
+                classFeaturesList.push({title:name,desc}); renderFeatureCards('class'); saveData(); closeCatalogPicker(); showModal('Característica adicionada',`${name} foi adicionada à seção de Características de Classe.`); return;
+            }
+        }
+        function addCatalogManual() {
+            const type=catalogPickerType; closeCatalogPicker();
+            if(type==='weapon') addWeaponRow();
+            else if(type==='inventory') addInventoryItem();
+            else addFeatureCard(type);
         }
 
         function renderFeatureCards(type) {
@@ -1505,8 +1897,8 @@
                 return;
             }
             container.innerHTML = listRef.map((item, idx) => `
-                <div class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2">
-                    <div class="flex items-center gap-2">
+                <div draggable="true" ondragstart="startCardDrag(event, '${type}', ${idx})" ondragover="event.preventDefault()" ondrop="dropCardDrag(event, '${type}', ${idx})" class="bg-black/40 border border-dnd-border rounded-xl p-3 space-y-2 cursor-move" title="Arraste para reorganizar">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-grip-vertical text-gray-500" title="Arraste para reorganizar"></i>
                         <input type="text" value="${item.title}" oninput="${type === 'species' ? 'speciesTraitsList' : type === 'class' ? 'classFeaturesList' : 'featsList'}[${idx}].title = this.value; saveData();" placeholder="Título" class="flex-1 bg-black/60 border border-dnd-border rounded-lg px-3 py-1.5 text-xs text-white font-semibold">
                         <button onclick="removeFeatureCard('${type}', ${idx})" class="text-red-400 hover:text-red-300 p-1.5 text-xs" title="Remover"><i class="fa-solid fa-trash"></i></button>
                     </div>
@@ -1544,6 +1936,10 @@
                 preview.src = characterAvatarData;
                 preview.classList.remove('hidden');
                 document.getElementById('avatar-placeholder').classList.add('hidden');
+                const menuPreview = document.getElementById('menu-avatar-preview');
+                const menuPlaceholder = document.getElementById('menu-avatar-placeholder');
+                if (menuPreview) { menuPreview.src = characterAvatarData; menuPreview.classList.remove('hidden'); }
+                if (menuPlaceholder) menuPlaceholder.classList.add('hidden');
                 saveData();
             };
             reader.readAsDataURL(file);
@@ -1555,6 +1951,10 @@
             preview.src = "";
             preview.classList.add('hidden');
             document.getElementById('avatar-placeholder').classList.remove('hidden');
+            const menuPreview = document.getElementById('menu-avatar-preview');
+            const menuPlaceholder = document.getElementById('menu-avatar-placeholder');
+            if (menuPreview) { menuPreview.src = ''; menuPreview.classList.add('hidden'); }
+            if (menuPlaceholder) menuPlaceholder.classList.remove('hidden');
             document.getElementById('avatar-input').value = "";
             saveData();
         }
@@ -1795,6 +2195,57 @@
             showModal("Descanso Longo Concluído", "PV restaurados ao máximo, PV temporários removidos, exaustão zerada e slots recuperados!");
         }
 
+        function clearSheet() {
+            if (!confirm('Tem certeza que deseja limpar a ficha?')) return;
+
+            // Apaga o salvamento existente e limpa todos os campos editáveis da ficha.
+            localStorage.removeItem('dnd2024_porquin_sheet');
+            document.querySelectorAll('main input, main textarea, main select').forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = false;
+                } else {
+                    // Deixa inclusive os campos de seleção sem escolha, em vez de manter uma opção padrão.
+                    el.value = '';
+                }
+            });
+
+            multiclassList = [];
+            resourcesList = [];
+            weaponsList = [];
+            inventoryItemsList = [];
+            spellsList = [];
+            speciesTraitsList = [];
+            classFeaturesList = [];
+            featsList = [];
+            skillBonuses = {};
+            savingThrowBonuses = {};
+            diceRollHistory = [];
+            characterAvatarData = '';
+
+            const preview = document.getElementById('avatar-preview');
+            if (preview) { preview.src = ''; preview.classList.add('hidden'); }
+            const placeholder = document.getElementById('avatar-placeholder');
+            if (placeholder) placeholder.classList.remove('hidden');
+            const menuPreview = document.getElementById('menu-avatar-preview');
+            const menuPlaceholder = document.getElementById('menu-avatar-placeholder');
+            if (menuPreview) { menuPreview.src = ''; menuPreview.classList.add('hidden'); }
+            if (menuPlaceholder) menuPlaceholder.classList.remove('hidden');
+            document.getElementById('hp-max-bonus').value = 0;
+
+            renderDynamicComponents();
+            renderWeapons();
+            renderInventory();
+            renderSpells();
+            renderFeatureCards('species');
+            renderFeatureCards('class');
+            renderFeatureCards('feat');
+            renderMulticlass();
+            renderResources();
+            calculateStats();
+            saveData();
+            showModal('Ficha limpa', 'Todos os dados da ficha foram apagados.');
+        }
+
         function saveData(notify = false) {
             const data = {
                 name: document.getElementById('char-name').value,
@@ -1814,6 +2265,7 @@
                 armorName: document.getElementById('armor-name').value,
                 armorBonus: document.getElementById('armor-bonus').value,
                 shieldEquipped: document.getElementById('shield-equipped').checked,
+                acAddDex: document.getElementById('ac-add-dex').checked,
                 shieldName: document.getElementById('shield-name').value,
                 shieldBonus: document.getElementById('shield-bonus').value,
                 armorExtraDesc: document.getElementById('armor-extra-desc').value,
@@ -1821,6 +2273,7 @@
                 heroicInspiration: document.getElementById('heroic-inspiration').checked,
                 hpCurrent: document.getElementById('hp-current').value,
                 hpTemp: document.getElementById('hp-temp').value,
+                hpMaxBonus: document.getElementById('hp-max-bonus').value,
                 hitDice: document.getElementById('hit-dice').value,
                 exhaustionLevel: document.getElementById('exhaustion-level').value,
                 deathSaves: {
@@ -1842,6 +2295,7 @@
                 featTough: document.getElementById('feat-tough').checked,
                 traitDwarf: document.getElementById('trait-dwarf').checked,
                 savingThrowsProfs: savingThrowsData.map(st => ({ key: st.key, checked: document.getElementById(`st-prof-${st.key}`).checked })),
+                skillBonuses, savingThrowBonuses,
                 skillsProfs: skillsData.map((sk, idx) => document.getElementById(`skill-prof-${idx}`).value),
                 weaponsList,
                 coins: {
@@ -1916,12 +2370,24 @@
                     preview.src = characterAvatarData;
                     preview.classList.remove('hidden');
                     document.getElementById('avatar-placeholder').classList.add('hidden');
+                    const menuPreview = document.getElementById('menu-avatar-preview');
+                    const menuPlaceholder = document.getElementById('menu-avatar-placeholder');
+                    if (menuPreview) { menuPreview.src = characterAvatarData; menuPreview.classList.remove('hidden'); }
+                    if (menuPlaceholder) menuPlaceholder.classList.add('hidden');
+                } else {
+                    const menuPreview = document.getElementById('menu-avatar-preview');
+                    const menuPlaceholder = document.getElementById('menu-avatar-placeholder');
+                    if (menuPreview) { menuPreview.src = ''; menuPreview.classList.add('hidden'); }
+                    if (menuPlaceholder) menuPlaceholder.classList.remove('hidden');
                 }
 
                 document.getElementById('val-speed').value = data.speed || "9m / 30ft";
                 document.getElementById('armor-name').value = data.armorName || "";
                 document.getElementById('armor-bonus').value = data.armorBonus || 12;
                 document.getElementById('shield-equipped').checked = !!data.shieldEquipped;
+                document.getElementById('ac-add-dex').checked = data.acAddDex !== false;
+                skillBonuses = data.skillBonuses || {};
+                savingThrowBonuses = data.savingThrowBonuses || {};
                 document.getElementById('shield-name').value = data.shieldName || "";
                 document.getElementById('shield-bonus').value = data.shieldBonus || 2;
                 document.getElementById('armor-extra-desc').value = data.armorExtraDesc || "";
@@ -1930,6 +2396,7 @@
 
                 document.getElementById('hp-current').value = data.hpCurrent || 12;
                 document.getElementById('hp-temp').value = data.hpTemp || 0;
+                document.getElementById('hp-max-bonus').value = data.hpMaxBonus || 0;
                 document.getElementById('hit-dice').value = data.hitDice || "1d10";
                 document.getElementById('exhaustion-level').value = data.exhaustionLevel || 0;
                 updateExhaustion();
